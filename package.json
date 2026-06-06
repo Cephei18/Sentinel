@@ -6,21 +6,78 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check-env": "tsx scripts/check-env.ts",
+    "wallet:new": "tsx scripts/wallet-new.ts",
+    "balance": "tsx scripts/balance.ts",
+    "send-usdc": "tsx scripts/send-usdc.ts",
+    "preflight": "pnpm typecheck && pnpm lint && pnpm check-env",
+    "prepare": "husky"
+  },
+  "pnpm": {
+    "overrides": {
+      "viem": "2.52.2"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.81",
+    "@ai-sdk/openai": "^3.0.68",
+    "@ai-sdk/react": "^3.0.199",
+    "@anthropic-ai/sdk": "^0.101.0",
+    "@coinbase/onchainkit": "^1.1.2",
+    "@privy-io/react-auth": "^3.29.2",
+    "@privy-io/wagmi": "^4.0.11",
+    "@tanstack/react-query": "^5.101.0",
+    "ai": "^6.0.197",
+    "axios": "^1.17.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "ethers": "^6.16.0",
+    "lucide-react": "^1.17.0",
+    "motion": "^12.40.0",
     "next": "16.2.7",
+    "openai": "^6.42.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "viem": "^2.52.2",
+    "wagmi": "^2.19.5",
+    "x402": "1.2.0",
+    "x402-axios": "1.2.0",
+    "x402-fetch": "^1.2.0",
+    "x402-next": "^1.2.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

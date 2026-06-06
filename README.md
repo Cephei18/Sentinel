@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Base Pay — Agentic Commerce Starter
 
-## Getting Started
+Production-grade hackathon starter for **Base + Privy + x402**: USDC payments, wallet auth,
+and AI agents that pay for things. Built to demo in minutes and continue into production.
 
-First, run the development server:
+> Stack: Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 · wagmi 2 / viem 2 ·
+> Privy · OnchainKit · x402 · Vercel AI SDK v6 · pnpm
+
+---
+
+## 60-second start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local           # PowerShell: Copy-Item .env.example .env.local
+# 1) add NEXT_PUBLIC_PRIVY_APP_ID  (https://dashboard.privy.io)
+# 2) add OPENAI_API_KEY or ANTHROPIC_API_KEY  (for the AI agent)
+pnpm wallet:new                      # mint a server agent wallet, paste key into .env.local
+pnpm check-env                       # verify everything is wired
+pnpm dev                             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Default network is **Base Sepolia** (testnet). Grab funds:
+[ETH faucet](https://portal.cdp.coinbase.com/products/faucet) ·
+[USDC faucet](https://faucet.circle.com).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What's inside
 
-## Learn More
+| Area | Where |
+| --- | --- |
+| Wallet auth (Privy + wagmi bridge) | [src/components/providers.tsx](src/components/providers.tsx), [src/hooks/use-wallet.ts](src/hooks/use-wallet.ts) |
+| USDC payments (hook + UI) | [src/hooks/use-payment.ts](src/hooks/use-payment.ts), [src/components/payment/usdc-payment.tsx](src/components/payment/usdc-payment.tsx) |
+| x402 — seller (gate) | [src/middleware.ts](src/middleware.ts), [src/app/api/premium/route.ts](src/app/api/premium/route.ts) |
+| x402 — buyer (agent pays) | [src/lib/x402.ts](src/lib/x402.ts), [src/app/api/x402/buy/route.ts](src/app/api/x402/buy/route.ts) |
+| AI commerce agent | [src/app/api/agent/route.ts](src/app/api/agent/route.ts), [src/lib/ai/tools.ts](src/lib/ai/tools.ts), [src/components/agent/agent-chat.tsx](src/components/agent/agent-chat.tsx) |
+| Onchain verification | [src/app/api/verify-payment/route.ts](src/app/api/verify-payment/route.ts) |
+| Chain / USDC / tx utils | [src/lib/chains.ts](src/lib/chains.ts), [src/lib/usdc.ts](src/lib/usdc.ts), [src/lib/tx.ts](src/lib/tx.ts) |
+| CLI scripts | [scripts/](scripts/) |
 
-To learn more about Next.js, take a look at the following resources:
+## Commands
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev            # dev server (Turbopack)
+pnpm build          # production build
+pnpm preflight      # typecheck + lint + env check (run before demoing)
+pnpm check-env      # validate .env.local
+pnpm wallet:new     # generate a funded-test agent wallet
+pnpm balance [addr] # ETH + USDC balance
+pnpm send-usdc <to> <amt>   # CLI USDC transfer from agent wallet
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Docs
 
-## Deploy on Vercel
+- [QUICKSTART](docs/QUICKSTART.md) — get running + get API keys
+- [HACKATHON_PLAYBOOK](docs/HACKATHON_PLAYBOOK.md) — winning project ideas + build order
+- [DEMO_FLOW](docs/DEMO_FLOW.md) — the 3-minute judge demo script
+- [COMMON_ERRORS](docs/COMMON_ERRORS.md) — fixes for the usual landmines
+- [CHEATSHEET](docs/CHEATSHEET.md) — addresses, snippets, commands
+- [ARCHITECTURE](docs/ARCHITECTURE.md) — how it fits together
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Design decisions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Privy is the single wallet layer.** It covers email/social + external wallets + embedded
+  wallets, so we skip RainbowKit to avoid duplicate connector providers. wagmi hooks still work.
+- **wagmi 2 / viem 2** (not wagmi 3): matches the OnchainKit + Privy peer matrix today.
+- **x402 both directions:** middleware gates routes (seller); `payingFetch`/`payingAxios`
+  auto-pay 402s (buyer/agent).
+- **Keys never touch the model.** Value-moving AI tools return *unsigned* intents for the user
+  to approve in their wallet.

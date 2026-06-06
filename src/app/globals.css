@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Design system — Base hackathon starter.
+ * Tailwind v4: tokens declared in @theme become utilities
+ * (e.g. --color-brand → bg-brand / text-brand / border-brand).
+ */
+@theme {
+  --color-brand: #0052ff; /* Base brand blue */
+  --color-brand-foreground: #ffffff;
+  --color-brand-muted: #3b7bff;
+
+  --color-background: #0a0b0f;
+  --color-surface: #12141c;
+  --color-surface-2: #1a1d27;
+  --color-border: #262a37;
+  --color-foreground: #f5f6fa;
+  --color-muted: #9aa3b2;
+
+  --color-success: #16c784;
+  --color-warning: #f5a623;
+  --color-danger: #ff5470;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius: 0.75rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle ambient gradient for the dark demo aesthetic. */
+.bg-grid {
+  background-image:
+    radial-gradient(60rem 60rem at 70% -10%, rgba(0, 82, 255, 0.18), transparent 60%),
+    radial-gradient(40rem 40rem at 0% 100%, rgba(59, 123, 255, 0.1), transparent 55%);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  animation: shimmer 1.5s infinite;
 }

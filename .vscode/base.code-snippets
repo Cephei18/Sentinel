@@ -1,0 +1,62 @@
+{
+  "Client Component": {
+    "prefix": "rcc",
+    "scope": "typescriptreact",
+    "body": [
+      "\"use client\";",
+      "",
+      "export function ${1:ComponentName}() {",
+      "  return <div>$0</div>;",
+      "}"
+    ],
+    "description": "Client component"
+  },
+  "Next API Route (Node)": {
+    "prefix": "route",
+    "scope": "typescript",
+    "body": [
+      "import { NextResponse } from \"next/server\";",
+      "",
+      "export const runtime = \"nodejs\";",
+      "",
+      "export async function ${1|GET,POST|}(req: Request) {",
+      "  $0",
+      "  return NextResponse.json({ ok: true });",
+      "}"
+    ],
+    "description": "Next.js route handler"
+  },
+  "USDC Payment card": {
+    "prefix": "pay",
+    "scope": "typescriptreact",
+    "body": [
+      "import { UsdcPayment } from \"@/components/payment/usdc-payment\";",
+      "",
+      "<UsdcPayment recipient=\"${1:0x...}\" amount=\"${2:1.00}\" label=\"${3:Checkout}\" />$0"
+    ],
+    "description": "Drop in a USDC payment card"
+  },
+  "useWallet hook": {
+    "prefix": "usewallet",
+    "scope": "typescriptreact",
+    "body": [
+      "const { address, isConnected, login, logout } = useWallet();$0"
+    ],
+    "description": "Wallet state"
+  },
+  "AI tool (Vercel AI SDK)": {
+    "prefix": "aitool",
+    "scope": "typescript",
+    "body": [
+      "${1:toolName}: tool({",
+      "  description: \"${2:what it does}\",",
+      "  inputSchema: z.object({ ${3:arg}: z.string() }),",
+      "  execute: async ({ ${3:arg} }) => {",
+      "    $0",
+      "    return { ok: true };",
+      "  },",
+      "}),"
+    ],
+    "description": "AI SDK tool definition"
+  }
+}
