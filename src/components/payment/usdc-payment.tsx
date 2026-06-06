@@ -8,23 +8,38 @@ import { Input } from "@/components/ui/input";
 import { usePayment } from "@/hooks/use-payment";
 import { useWallet } from "@/hooks/use-wallet";
 import { ConnectButton } from "@/components/wallet/connect-button";
+import { useIsDemoMode, DemoPlaceholder } from "@/components/demo-mode";
+
+interface UsdcPaymentProps {
+  recipient?: string;
+  amount?: string;
+  label?: string;
+  description?: string;
+}
 
 /**
  * Self-contained USDC checkout card. Pass a fixed `recipient`/`amount` for a
  * product, or leave editable for a send-money demo. Handles validation,
  * signing, confirmation, success + explorer link, and errors.
  */
-export function UsdcPayment({
+export function UsdcPayment(props: UsdcPaymentProps) {
+  if (useIsDemoMode()) {
+    return (
+      <DemoPlaceholder
+        title={props.label ?? "Pay with USDC"}
+        body="On-chain payments are disabled in demo mode — the workforce flows run without a wallet."
+      />
+    );
+  }
+  return <UsdcPaymentLive {...props} />;
+}
+
+function UsdcPaymentLive({
   recipient,
   amount: fixedAmount,
   label = "Pay with USDC",
   description = "Settled on-chain in seconds.",
-}: {
-  recipient?: string;
-  amount?: string;
-  label?: string;
-  description?: string;
-}) {
+}: UsdcPaymentProps) {
   const { isConnected } = useWallet();
   const { pay, status, error, explorerUrl, isBusy, reset } = usePayment();
   const [to, setTo] = useState(recipient ?? "");
@@ -43,14 +58,14 @@ export function UsdcPayment({
           <ConnectButton />
         ) : isSuccess ? (
           <div className="space-y-3 text-center">
-            <CheckCircle2 className="mx-auto size-10 text-success" />
+            <CheckCircle2 className="text-success mx-auto size-10" />
             <p className="font-medium">Payment confirmed</p>
             {explorerUrl && (
               <a
                 href={explorerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-brand-muted hover:underline"
+                className="text-brand-muted inline-flex items-center gap-1 text-sm hover:underline"
               >
                 View on explorer <ExternalLink className="size-3.5" />
               </a>
@@ -62,7 +77,7 @@ export function UsdcPayment({
         ) : (
           <>
             <div className="space-y-1.5">
-              <label className="text-xs text-muted">Recipient</label>
+              <label className="text-muted text-xs">Recipient</label>
               <Input
                 placeholder="0x…"
                 value={to}
@@ -72,7 +87,7 @@ export function UsdcPayment({
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-muted">Amount (USDC)</label>
+              <label className="text-muted text-xs">Amount (USDC)</label>
               <Input
                 type="number"
                 step="0.01"
@@ -84,7 +99,7 @@ export function UsdcPayment({
             </div>
 
             {error && (
-              <p className="flex items-center gap-1.5 text-sm text-danger">
+              <p className="text-danger flex items-center gap-1.5 text-sm">
                 <XCircle className="size-4" /> {error}
               </p>
             )}

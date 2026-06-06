@@ -6,19 +6,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useWallet } from "@/hooks/use-wallet";
 import { useUsdcBalance } from "@/hooks/use-usdc-balance";
+import { useIsDemoMode, DemoPlaceholder } from "@/components/demo-mode";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
 import { chainLabel } from "@/lib/chains";
 import { explorerAddress } from "@/lib/tx";
 
 /** Live account panel: address, network, and streaming USDC balance. */
 export function WalletStatus() {
+  if (useIsDemoMode()) {
+    return (
+      <DemoPlaceholder
+        title="Wallet · demo mode"
+        body="Wallet and balances are disabled in demo mode. Workforce, trust, and governance are fully live."
+      />
+    );
+  }
+  return <WalletStatusLive />;
+}
+
+function WalletStatusLive() {
   const { address, isConnected } = useWallet();
   const { formatted, isLoading } = useUsdcBalance(address);
 
   if (!isConnected || !address) {
     return (
       <Card>
-        <CardContent className="py-8 text-center text-sm text-muted">
+        <CardContent className="text-muted py-8 text-center text-sm">
           Connect a wallet to see your balance.
         </CardContent>
       </Card>
@@ -33,7 +46,7 @@ export function WalletStatus() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-xs text-muted">Address</p>
+          <p className="text-muted text-xs">Address</p>
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm">{truncateAddress(address, 6)}</span>
             <button
@@ -57,10 +70,12 @@ export function WalletStatus() {
           </div>
         </div>
         <div>
-          <p className="text-xs text-muted">USDC Balance</p>
+          <p className="text-muted text-xs">USDC Balance</p>
           <p className="text-2xl font-semibold tabular-nums">
-            {isLoading ? "—" : Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            <span className="ml-1 text-sm font-normal text-muted">USDC</span>
+            {isLoading
+              ? "—"
+              : Number(formatted).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            <span className="text-muted ml-1 text-sm font-normal">USDC</span>
           </p>
         </div>
       </CardContent>
