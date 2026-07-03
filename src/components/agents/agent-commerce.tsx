@@ -11,7 +11,7 @@ import { AgentAvatar } from "@/components/agents/agent-avatar";
 import { useAgents } from "@/hooks/use-agents";
 import { notifyTrust } from "@/components/agents/trust-toast";
 import { gradeBadgeVariant } from "@/lib/agents/format";
-import { autonomyFor } from "@/lib/agents/governance";
+import { checkDelegation } from "@/lib/agents/authorization";
 import type { DraftEvent } from "@/lib/agents/types";
 
 const selectClass =
@@ -55,24 +55,18 @@ export function AgentCommerce() {
     );
   }
 
-  function guardrail(): string | null {
-    if (!payer) return "No active payer.";
-    if (new Date(payer.authorization.expiresAt).getTime() < nowMs)
-      return "Payer authorization expired.";
-    if (!autonomyFor(scoreFor(payer).score).canDelegate)
-      return `${payer.name} is Supervised — it must earn higher reliability before it can delegate.`;
-    if (!payer.authorization.categories.includes("services"))
-      return `${payer.name} isn't authorized to spend on agent services.`;
-    if (!(amountNum > 0)) return "Enter an amount greater than 0.";
-    if (amountNum > payer.authorization.perTxLimitUsdc)
-      return `$${amountNum} exceeds ${payer.name}'s $${payer.authorization.perTxLimitUsdc} per-tx limit.`;
-    if (spendFor(payer).remainingUsdc < amountNum) return `${payer.name}'s budget is exhausted.`;
-    return null;
-  }
-
   const hire = () => {
-    const blocked = guardrail();
-    if (blocked) {
+    // Shared engine guardrail: payer scope + delegation tier + payee status.
+    const verdict = checkDelegation({
+      payer,
+      payerScore: scoreFor(payer).score,
+      payerSpend: spendFor(payer),
+      payee,
+      amountUsdc: amountNum,
+      nowMs,
+    });
+    if (!verdict.allowed) {
+      const blocked = verdict.reason;
       const blockEvent: DraftEvent = {
         agentId: payer.id,
         kind: "limit_blocked",

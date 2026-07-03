@@ -9,6 +9,7 @@ import { useAgents } from "@/hooks/use-agents";
 import { notifyTrust } from "@/components/agents/trust-toast";
 import { useIsDemoMode } from "@/components/demo-mode";
 import { explorerTx } from "@/lib/tx";
+import { checkAuthorization } from "@/lib/agents/authorization";
 import type { Agent, DraftEvent, SpendCategory } from "@/lib/agents/types";
 
 // The gated resource this action buys (matches /api/premium pricing + nature).
@@ -20,8 +21,7 @@ const RESOURCE = {
 
 type RunResult =
   | { kind: "blocked"; reason: string }
-  | { kind: "success"; txHash?: string; simulated?: boolean }
-  | { kind: "failed"; error: string };
+  | { kind: "success"; txHash?: string; simulated?: boolean };
 
 /**
  * Runs a real x402 autonomous purchase ON BEHALF OF this agent — but only after
@@ -34,22 +34,16 @@ export function AgentRunAction({ agent }: { agent: Agent }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
 
-  /** Enforce the granted scope before any value moves. */
-  function guardrail(): string | null {
-    if (agent.status !== "active") return `Agent is ${agent.status} — not authorized to transact.`;
-    if (new Date(agent.authorization.expiresAt).getTime() < Date.now())
-      return "Authorization has expired.";
-    if (!agent.authorization.categories.includes(RESOURCE.category))
-      return `Category "${RESOURCE.category}" is outside this agent's authorization.`;
-    if (RESOURCE.priceUsdc > agent.authorization.perTxLimitUsdc)
-      return `$${RESOURCE.priceUsdc} exceeds the $${agent.authorization.perTxLimitUsdc} per-transaction limit.`;
-    if (spendFor(agent).remainingUsdc < RESOURCE.priceUsdc) return "Budget exhausted.";
-    return null;
-  }
-
   const run = async () => {
-    const blockedReason = guardrail();
-    if (blockedReason) {
+    // Enforce the granted scope before any value moves (shared engine guardrail).
+    const verdict = checkAuthorization(
+      agent,
+      spendFor(agent),
+      { amountUsdc: RESOURCE.priceUsdc, category: RESOURCE.category },
+      Date.now(),
+    );
+    if (!verdict.allowed) {
+      const blockedReason = verdict.reason;
       const blockEvent: DraftEvent = {
         agentId: agent.id,
         kind: "limit_blocked",
@@ -155,15 +149,6 @@ export function AgentRunAction({ agent }: { agent: Agent }) {
               <span className="text-muted text-xs">trust updated live</span>
             )}
           </div>
-        )}
-
-        {result?.kind === "failed" && (
-          <p className="border-danger/30 bg-danger/10 text-danger rounded-[var(--radius)] border p-3 text-sm">
-            {result.error}
-            <span className="text-muted mt-1 block text-xs">
-              Tip: set a funded AGENT_PRIVATE_KEY + X402_PAY_TO_ADDRESS in .env.local.
-            </span>
-          </p>
         )}
       </CardContent>
     </Card>

@@ -183,6 +183,7 @@ pnpm preflight        # typecheck + lint + env check (run before demoing)
 Fund the agent wallet on testnet: [ETH faucet](https://portal.cdp.coinbase.com/products/faucet) · [USDC faucet](https://faucet.circle.com).
 
 ```bash
+pnpm test             # trust-engine test suite (the executable spec)
 pnpm build            # production build
 pnpm balance [addr]   # ETH + USDC balance
 pnpm send-usdc <to> <amt>   # CLI USDC transfer (guaranteed-working backup payment)
@@ -203,6 +204,12 @@ pnpm send-usdc <to> <amt>   # CLI USDC transfer (guaranteed-working backup payme
 
 ## ◆ Docs
 
-[Architecture](docs/ARCHITECTURE.md) · [Demo flow](docs/DEMO_FLOW.md) · [Pitch deck](docs/SLIDES.md) · [Quickstart](docs/QUICKSTART.md) · [Common errors](docs/COMMON_ERRORS.md) · [Cheatsheet](docs/CHEATSHEET.md)
+**Start here:** [Source of truth](context/sentinel.md) · [System overview](docs/SYSTEM_OVERVIEW.md) · [Current state](docs/CURRENT_STATE.md) · [Known limitations](docs/KNOWN_LIMITATIONS.md)
+
+**Engineering:** [Architecture (current + target)](docs/ARCHITECTURE.md) · [Data flow](docs/DATA_FLOW.md) · [Domain model](docs/DOMAIN_MODEL.md) · [Trust model](docs/TRUST_MODEL.md) · [Governance model](docs/GOVERNANCE_MODEL.md) · [API spec](docs/API_SPEC.md) · [Tech stack](docs/TECH_STACK.md) · [Security](docs/SECURITY.md) · [Deployment](docs/DEPLOYMENT.md) · [Observability](docs/OBSERVABILITY.md) · [Standards](docs/ENGINEERING_STANDARDS.md) · [Decisions](docs/DECISIONS.md) · [Constraints](docs/CONSTRAINTS.md)
+
+**Strategy:** [Vision & startup strategy](docs/VISION.md) · [Roadmap](docs/ROADMAP.md) · [Next steps](docs/NEXT_STEPS.md) · [Research notes](memory/research-notes.md)
+
+**Demo era:** [Demo flow](docs/DEMO_FLOW.md) · [Pitch deck](docs/SLIDES.md) · [Quickstart](docs/QUICKSTART.md) · [Common errors](docs/COMMON_ERRORS.md) · [Cheatsheet](docs/CHEATSHEET.md)
 
 <div align="center"><sub>Built for the Base × Privy × x402 hackathon.</sub></div>

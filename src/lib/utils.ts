@@ -13,11 +13,6 @@ export function truncateAddress(address?: string | null, chars = 4): string {
   return `${address.slice(0, chars + 2)}…${address.slice(-chars)}`;
 }
 
-/** Promise-based sleep, handy for demo pacing and polling loops. */
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 /** Format a USD-ish number to a clean currency string. */
 export function formatUsd(value: number | string, opts?: { compact?: boolean }): string {
   const n = typeof value === "string" ? Number(value) : value;

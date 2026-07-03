@@ -171,6 +171,9 @@ export function buildSeed(nowMs: number): Seed {
       "compute",
       26 * HOUR,
     ),
+    // A second revert keeps Probe below the Trusted threshold (<66) — the
+    // "reckless worker" of the demo narrative must not be cleared to delegate.
+    ev("agt_probe", "payment_failed", "Payment reverted — nonce reused", 1.5, "data", 20 * HOUR),
   ];
 
   // Newest first for activity feeds.
