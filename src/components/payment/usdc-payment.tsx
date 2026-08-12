@@ -79,7 +79,7 @@ function UsdcPaymentLive({
             <div className="space-y-1.5">
               <label className="text-muted text-xs">Recipient</label>
               <Input
-                placeholder="0x…"
+                placeholder="Solana address…"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
                 disabled={Boolean(recipient) || isBusy}

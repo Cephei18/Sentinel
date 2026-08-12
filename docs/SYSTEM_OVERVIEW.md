@@ -8,7 +8,7 @@
 
 A Next.js 16 app that demonstrates **Sentinel**: a founder hires autonomous AI
 workers, grants each a *scoped* budget, and the system blocks out-of-scope
-spending, settles in-scope payments in USDC on Base (via x402), and turns all
+spending, settles in-scope payments in USDC on Solana (via x402), and turns all
 of that behaviour into an explainable trust score that decides how much
 autonomy and capital each worker gets.
 
@@ -52,13 +52,14 @@ engine never changes when the storage does.
 
 ## The one real payment
 
-When configured (`AGENT_PRIVATE_KEY` funded with testnet USDC +
+When configured (`AGENT_PRIVATE_KEY` funded with devnet USDC +
 `X402_PAY_TO_ADDRESS`), the "Autonomous purchase" button triggers a genuine
-x402 flow: the server's agent wallet calls the app's own 402-gated
+x402 flow: the server's agent keypair calls the app's own 402-gated
 `/api/premium` endpoint, gets HTTP 402 with payment requirements, signs a USDC
-authorization, retries, the facilitator settles on Base, and the UI links the
-settlement transaction. Unconfigured (or on failure), it records a
-clearly-labelled **simulated** settlement instead so the flow never dead-ends.
+payment transaction, retries with a `PAYMENT-SIGNATURE` header, the PayAI
+facilitator settles on Solana, and the UI links the settlement signature on
+Solana Explorer. Unconfigured (or on failure), it records a clearly-labelled
+**simulated** settlement instead so the flow never dead-ends.
 
 ## What's real vs demo (memorize this)
 
@@ -67,7 +68,7 @@ clearly-labelled **simulated** settlement instead so the flow never dead-ends.
 | Trust/governance engine (pure, tested) | State custody (localStorage) |
 | Guardrail *logic* | Guardrail *placement* (client-side; server pays blindly) |
 | x402 settlement path (when configured) | Agent-to-agent settlement (simulated coordination) |
-| Privy wallets, USDC transfers, on-chain verification | Task completion (self-reported) |
+| Privy Solana wallets, USDC transfers, on-chain verification | Task completion (self-reported) |
 | Explainable trust deltas | Multi-user/org anything |
 
 The full gap list: `KNOWN_LIMITATIONS.md`. The plan to close it: `ROADMAP.md`.
@@ -79,9 +80,11 @@ context/sentinel.md      why we exist (source of truth)
 docs/                    engineering + product docs (start: this file)
 memory/                  working notes: decisions, project memory, research
 src/lib/agents/          ★ the engine — pure, deterministic, tested
-src/lib/                 chain/payment plumbing (viem, usdc, x402, env)
+src/lib/                 chain/payment plumbing (solana, connection, usdc, x402, env)
 src/components/agents/   the workforce UI + the client store
-src/app/                 pages + API routes; middleware.ts = x402 gate
+src/app/                 pages + API routes; the x402 gate lives in
+                         api/premium/route.ts (x402-solana has no Next.js
+                         middleware helper, so there is no middleware.ts)
 scripts/                 wallet-new · check-env · balance · send-usdc
 ```
 

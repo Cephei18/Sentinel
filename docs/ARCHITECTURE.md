@@ -19,11 +19,13 @@ app/                 Next.js 16 App Router — pages + API routes (the edges)
   graph/                 organization graph + agent-to-agent delegation
   agents/[id]/           worker profile: trust ring, breakdown, governance, run
   api/agent              streaming tool-calling AI agent (Node runtime)
-  api/premium            x402-gated resource (seller side)
+  api/premium            x402-gated resource (seller side) — extract/verify/settle
+                         inline via x402-solana; there is no middleware.ts (the
+                         v2 protocol has no Next.js middleware helper, so the
+                         gate lives in the route handler itself)
   api/x402/buy           server agent wallet auto-pays the gate (buyer side)
   api/verify-payment     on-chain USDC verification
   api/health             liveness + env sanity
-middleware.ts        x402 payment gate (before matched routes)
 
 components/          UI
   agents/                the Sentinel workforce UI (roster, graph, trust ring,
@@ -31,7 +33,8 @@ components/          UI
     agents-provider.tsx  ★ client store — the v1 system of record
   agent/ · payment/ · wallet/ · x402/   feature blocks from the starter
   ui/                    small primitive kit (button, card, badge, dialog…)
-  providers.tsx          Privy → QueryClient → wagmi stack, client-only mount
+  providers.tsx          Privy (Solana embedded + external wallets) →
+                         QueryClient stack, client-only mount
   demo-mode.tsx          wallet-free demo resilience
 
 hooks/               React data layer
@@ -41,7 +44,7 @@ hooks/               React data layer
 lib/                 framework-agnostic core (the brain) — never imports up
   agents/                ★ domain: types · reputation · governance ·
                            authorization · seed · format
-  chains · constants · env · viem · usdc · tx · x402 · wagmi · ai/* ·
+  solana · connection · constants · env · usdc · tx · x402 · ai/* ·
   brand · utils
 
 scripts/             tsx CLIs (self-contained, no Next imports):
@@ -50,7 +53,9 @@ scripts/             tsx CLIs (self-contained, no Next imports):
 
 Dependency direction: `app → components/hooks → lib`; `lib` never imports up.
 The `lib/agents` engine has **no React/server imports** — it is the portable
-core that later moves behind a service boundary unchanged.
+core that later moves behind a service boundary unchanged. It needed **zero
+changes** for the Base → Solana migration; every module that changed lived in
+the chain-plumbing layer around it.
 
 ### The v1 system of record
 
@@ -61,25 +66,35 @@ graph edges are **derived on read** via the pure engine. The provider's surface
 scoreFor, spendFor, projectDelta, reset`) is the deliberate seam for swapping in
 an API + database without touching UI or engine.
 
-### Key flows (unchanged from the starter, still accurate)
+### Key flows
 
-- **Wallet auth:** `Providers` mounts `PrivyProvider → QueryClientProvider →
-  WagmiProvider(@privy-io/wagmi)`, client-side only (Privy can't SSR). Privy
-  owns identity + embedded/external wallets; the bridge feeds wagmi hooks.
-  No Privy app id ⇒ the whole app runs in **demo mode** instead of crashing.
+- **Wallet auth:** `Providers` mounts `PrivyProvider → QueryClientProvider`,
+  client-side only (Privy can't SSR). Privy is configured for Solana —
+  `embeddedWallets: { solana: {...} }`, `appearance.walletChainType:
+  "solana-only"` — and owns identity + embedded/external Solana wallets
+  directly; there is no wagmi bridge (Solana has no multi-chain config to
+  bridge into, unlike the old `@privy-io/wagmi` layer). No Privy app id ⇒ the
+  whole app runs in **demo mode** instead of crashing.
 - **Guardrailed autonomous purchase:** profile → `checkAuthorization()`
   (`lib/agents/authorization.ts`) → blocked ⇒ `limit_blocked` event; clear ⇒
   `POST /api/x402/buy` → server wallet pays 402-gated `/api/premium` via
-  `payingFetch` → settlement hash recorded in a `payment_success` event →
+  `payingFetch` → settlement signature recorded in a `payment_success` event →
   trust delta toast. (Demo mode / failed real payment ⇒ labelled simulation.)
-- **x402 seller:** `middleware.ts` runs `paymentMiddleware` on `/api/premium`;
-  no `X402_PAY_TO_ADDRESS` ⇒ gate disabled so local dev always works.
+- **x402 seller:** `/api/premium/route.ts` runs the `x402-solana` extract →
+  verify → settle flow itself against the PayAI facilitator; no
+  `X402_PAY_TO_ADDRESS` ⇒ gate disabled so local dev always works. There is no
+  `middleware.ts` in this repo — it was deleted during the migration because
+  x402-solana (protocol v2) ships no Next.js middleware helper, unlike the old
+  `x402-next` package.
 - **AI agent:** `/api/agent` streams AI SDK v6 `streamText` with
   `commerceTools`; value-moving tools return **unsigned intents** the user
   signs — the model never holds keys.
-- **The one switch:** `NEXT_PUBLIC_CHAIN` (`base-sepolia` | `base`) drives
-  `lib/chains.ts`; every module reads chain, USDC address, explorer, RPC, and
-  x402 network from it.
+- **The one switch:** `NEXT_PUBLIC_SOLANA_CLUSTER` (`devnet` | `mainnet-beta`)
+  drives `lib/solana.ts` (`activeCluster`, `clusterLabel`, `IS_MAINNET`,
+  `x402Network`); every module reads cluster, USDC mint, explorer, RPC, and
+  x402 network from it. Unlike EVM chains, Solana wallets have no
+  "switch chain" UI action, so this is a build/env-time choice, not a runtime
+  one — exactly one active cluster per deployment.
 - **Env boundary:** `clientEnv` (NEXT_PUBLIC_*, validated at load) vs
   `serverEnv()` (secrets, lazy, throws in browser).
 
@@ -88,6 +103,14 @@ an API + database without touching UI or engine.
 Enforcement runs client-side; `/api/x402/buy` trusts its caller; state is
 single-browser. This inverts the product's core promise and is the first thing
 the target architecture fixes — see `KNOWN_LIMITATIONS.md` P0.
+
+The x402-solana integration itself was built and verified against the
+installed package's real TypeScript types and README, and the degradation
+ladder (graceful fallback when no funded wallet is configured) was live-tested
+via `pnpm dev`. It has **not** been exercised end-to-end against a live funded
+devnet wallet plus live facilitator settlement — that requires an operator to
+actually fund a wallet and run it. Be precise about this gap; don't claim more
+than "verified against types/docs + fallback path tested."
 
 ---
 
@@ -131,10 +154,10 @@ flowchart TB
   end
 
   subgraph ValuePlane [Value plane]
-    PW[Privy server wallets<br/>signing-time policies = backstop]
-    X4[x402 V2 facilitator]
-    BASE[(Base · USDC)]
-    EAS[EAS attestations<br/>anchored log roots · trust snapshots]
+    PW[Privy Solana server wallets<br/>signing-time policies = backstop]
+    X4[x402-solana V2 facilitator<br/>PayAI]
+    SOL[(Solana · USDC SPL)]
+    ATT[On-chain attestations<br/>anchored log roots · trust snapshots]
   end
 
   D --> API
@@ -143,12 +166,12 @@ flowchart TB
   API --> PE
   PE -->|verdict + full inputs| ES
   PE -->|allow| PW
-  PW --> X4 --> BASE
+  PW --> X4 --> SOL
   ES --> TE --> RM
   RM --> PE
   API --> AP
   ES --> OBS
-  ES -.Merkle roots.-> EAS
+  ES -.Merkle roots.-> ATT
 ```
 
 ### Enforcement path (the heart)
@@ -158,8 +181,8 @@ sequenceDiagram
   participant A as Agent (holds Sentinel agent key)
   participant S as Sentinel API
   participant P as Policy Engine
-  participant W as Privy server wallet
-  participant F as x402 facilitator
+  participant W as Privy Solana server wallet
+  participant F as x402-solana facilitator (PayAI)
 
   A->>S: intent: pay $X for <resource> (category, counterparty)
   S->>P: evaluate(authorization, trust tier, ledger, request)
@@ -171,8 +194,8 @@ sequenceDiagram
     P-->>S: ALLOW + decision trace
     S->>S: append attempt event
     S->>W: sign payment (wallet policy re-checks caps)
-    W->>F: settle USDC on Base
-    F-->>S: settlement hash
+    W->>F: settle USDC (SPL) on Solana
+    F-->>S: settlement signature
     S->>S: append payment_success event
     S-->>A: 200 + receipt
   end
@@ -191,13 +214,16 @@ out-of-policy value.
 | v1 (now) | browser localStorage | client UI | none |
 | v1.5 | Postgres via API (same provider seam) | server route pre-flight | session auth (Privy) |
 | v2 | append-only event store + hash chain, projections | policy engine at API + Privy wallet policies | orgs, roles, agent keys |
-| v3 | + Merkle roots anchored via EAS on Base | + MCP-gateway integration surface | + portable agent attestations (ERC-8004-compatible) |
+| v3 | + Merkle roots anchored via on-chain attestations on Solana | + MCP-gateway integration surface | + portable agent attestations |
 
 Each stage is an incremental migration across the seams that already exist
 (`agents-provider` surface; pure engine signatures) — no rewrite.
 
 ### What Sentinel deliberately does NOT build
 
-- Payment rails (x402/facilitators exist) · wallets/key custody (Privy/CDP) ·
-  agent frameworks · MCP gateway plumbing (integrate; don't compete) ·
-  opaque ML trust scores (advisory anomaly signals only).
+- Payment rails (x402-solana/facilitators exist) · wallets/key custody (Privy)
+  · agent frameworks · MCP gateway plumbing (integrate; don't compete) ·
+  opaque ML trust scores (advisory anomaly signals only) · a custom on-chain
+  program (this repo rides the existing SPL Token program + Privy-managed
+  wallets + x402-solana's facilitator-mediated settlement — no Anchor program,
+  same "no custom smart contract" shape the product always had).

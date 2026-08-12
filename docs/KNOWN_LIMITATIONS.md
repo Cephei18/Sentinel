@@ -29,8 +29,10 @@
 3. **The event log is mutable in practice.** Events are "immutable" by
    convention only — any client code (or the user via devtools) can rewrite
    `sentinel.store.v1`. Trust derived from a tamperable log is not trust. *Fix:*
-   server custody, append-only writes, hash chaining; later Merkle roots
-   anchored via EAS on Base (Roadmap M2/M6).
+   server custody, append-only writes, hash chaining (Roadmap M2); later
+   Merkle-batched integrity proofs (Roadmap M6) — Solana has no direct EAS
+   equivalent, so the anchoring mechanism is still an open research question,
+   not a settled choice (see Roadmap M6/M9).
 
 ## 🟠 P1 — Correctness & security
 
@@ -47,9 +49,10 @@
    (and `maxDuration: 30` of RPC work per call). Needs auth + rate limiting the
    moment it deploys anywhere public with a funded key.
 
-6. **`AGENT_PRIVATE_KEY` is a raw hot key in env.** Acceptable for a testnet
-   demo; unacceptable beyond it. Replace with Privy server wallets (or CDP) so
-   keys live in wallet infrastructure with signing-time policies (Roadmap M2).
+6. **`AGENT_PRIVATE_KEY` is a raw hot key (base58 or JSON byte-array) in env.**
+   Acceptable for a devnet demo; unacceptable beyond it. Replace with Privy
+   server wallets on Solana so keys live in wallet infrastructure with
+   signing-time policies (Roadmap M2).
 
 7. **Trust engine is gameable by design (documented v1 simplifications):** no
    time decay, no amount weighting (a $0.01 success = a $500 success),
@@ -62,15 +65,23 @@
    brand-new agent may delegate — arguably contradicting "autonomy is earned"
    (should likely start Supervised until confidence ≥ medium).
 
-8. **x402 dependencies are the deprecated V1 line.** `x402-next` / `x402-fetch`
-   / `x402-axios` 1.2.x receive security patches only; the ecosystem moved to
-   `@x402/*` V2 (Dec 2025) with a different architecture (headers, multi-chain,
-   discovery). Migrate deliberately (Roadmap M2).
+8. ~~**x402 dependencies are the deprecated V1 line.** `x402-next` / `x402-fetch`
+   / `x402-axios` 1.2.x receive security patches only; the ecosystem moved to a
+   V2 architecture (headers, multi-chain, discovery). Migrate deliberately.~~
+   ✅ Done as part of the Solana migration: the app now runs on `x402-solana`
+   (protocol v2, PayAI Network), with `PAYMENT-SIGNATURE`/`PAYMENT-RESPONSE`
+   headers and the gate implemented directly in `/api/premium` (x402-solana
+   ships no Next.js middleware helper, so `middleware.ts` was removed rather
+   than ported). Verified against the installed package's types/README and
+   exercised via `pnpm dev`'s degradation ladder, but **not yet exercised
+   end-to-end against a funded live devnet wallet + live facilitator
+   settlement** — treat that path as unverified until it is.
 
-9. **`verify-payment` counts all USDC Transfer events in a tx and keeps only
-   the last recipient** ([route.ts:44-57](../src/app/api/verify-payment/route.ts#L44-L57)) —
-   a multi-transfer tx could satisfy `minAmount` across different recipients
-   while `expectedTo` matches only the final leg. Low stakes today; tighten to
+9. **`verify-payment` sums every USDC token-balance increase in a tx and keeps
+   only the last owner seen as "the" recipient**
+   ([route.ts](../src/app/api/verify-payment/route.ts)) — a multi-transfer tx
+   could satisfy `minAmount` across different recipient ATAs while
+   `expectedTo` matches only the final leg. Low stakes today; tighten to
    per-recipient sums when it guards anything real.
 
 ## 🟡 P2 — Debt
@@ -106,10 +117,12 @@
 17. ~~`.env.example` header still says "Base Pay — Hackathon Starter".~~ ✅ Fixed.
 18. ~~`ARCHITECTURE.md` predates the Sentinel layer (omits `lib/agents/*`,
     `components/agents/*`, 2 of 6 hooks).~~ ✅ Rewritten.
-19. `package.json` `name` is `"base"`; landing footer says "Built for the
+19. ~~`package.json` `name` is `"base"`; landing footer says "Built for the
     Base + Privy hackathon"; `.vscode/extensions.json` recommends a Solidity
-    extension with no Solidity in the repo. Tidy alongside the rename decision
-    (see below).
+    extension with no Solidity in the repo.~~ ✅ Fixed as part of the Solana
+    migration: `package.json` `name` is now `"sentinel"`, landing copy and
+    `.vscode/extensions.json` updated. The name-collision question below is
+    unrelated and still open.
 20. Minor UI duplication: budget-bar block (`agent-card` / `authorization-card`),
     `tierVariant` mapping (`governance-card` / `workforce-rankings`), `nowMs`
     snapshot pattern ×3. Extract when next touched; not worth churn now.
@@ -136,5 +149,9 @@
 - **Clean layering** (`app → components/hooks → lib`, lib never imports up) and
   the explicit provider seam for the storage swap.
 - **Unsigned-intent AI tools** — the model never holds keys.
-- Strict TS, zod-validated env split (client/server), single chain switch,
+- Strict TS, zod-validated env split (client/server), single cluster switch,
   USDC decimal hygiene, wallet-free demo resilience.
+- **The trust/governance engine needed zero changes for the Solana
+  migration** — `src/lib/agents/` is pure TypeScript with no chain imports
+  (confirmed by a full import audit), and all 39 existing vitest tests pass
+  unmodified. The actual IP was untouched by the rewrite.

@@ -138,7 +138,7 @@ export function AgentRunAction({ agent }: { agent: Agent }) {
             </Badge>
             {result.txHash ? (
               <a
-                href={explorerTx(result.txHash as `0x${string}`)}
+                href={explorerTx(result.txHash)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-brand-muted inline-flex items-center gap-1 text-xs hover:underline"

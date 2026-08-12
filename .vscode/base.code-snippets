@@ -32,7 +32,7 @@
     "body": [
       "import { UsdcPayment } from \"@/components/payment/usdc-payment\";",
       "",
-      "<UsdcPayment recipient=\"${1:0x...}\" amount=\"${2:1.00}\" label=\"${3:Checkout}\" />$0"
+      "<UsdcPayment recipient=\"${1:7xKX...9fQ2}\" amount=\"${2:1.00}\" label=\"${3:Checkout}\" />$0"
     ],
     "description": "Drop in a USDC payment card"
   },

@@ -8,7 +8,7 @@ import { useWallet } from "@/hooks/use-wallet";
 import { useUsdcBalance } from "@/hooks/use-usdc-balance";
 import { useIsDemoMode, DemoPlaceholder } from "@/components/demo-mode";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
-import { chainLabel } from "@/lib/chains";
+import { clusterLabel } from "@/lib/solana";
 import { explorerAddress } from "@/lib/tx";
 
 /** Live account panel: address, network, and streaming USDC balance. */
@@ -42,7 +42,7 @@ function WalletStatusLive() {
     <Card>
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle>Wallet</CardTitle>
-        <Badge variant="brand">{chainLabel}</Badge>
+        <Badge variant="brand">{clusterLabel}</Badge>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

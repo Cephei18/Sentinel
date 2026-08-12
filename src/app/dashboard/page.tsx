@@ -41,7 +41,7 @@ export default function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <GlobalActivity limit={8} />
           <X402Demo />
-          <UsdcPayment label="Send USDC" description="Transfer USDC to any address on Base." />
+          <UsdcPayment label="Send USDC" description="Transfer USDC to any address on Solana." />
         </div>
 
         {/* The commerce agent */}

@@ -1,54 +1,82 @@
-import { encodeFunctionData, formatUnits, parseUnits, type Address } from "viem";
-import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS } from "./constants";
-import { activeChainId } from "./chains";
-import { getPublicClient } from "./viem";
+import { PublicKey } from "@solana/web3.js";
+import {
+  getAssociatedTokenAddress,
+  getAccount,
+  createTransferInstruction,
+  TokenAccountNotFoundError,
+} from "@solana/spl-token";
+import { USDC_MINT, USDC_DECIMALS } from "./constants";
+import { activeCluster } from "./solana";
+import { getConnection } from "./connection";
 
 /**
  * USDC helpers. USDC uses 6 decimals — the #1 source of "why did I send
  * 1,000,000x too much" bugs. Always go through parseUsdc / formatUsdc.
+ *
+ * Unlike an ERC-20, USDC on Solana lives on Associated Token Accounts (ATAs)
+ * derived from (wallet pubkey, mint) — a wallet's own address is never where
+ * its USDC balance is read from or written to.
  */
 
-/** USDC token address for the active chain. */
-export function usdcAddress(chainId: number = activeChainId): Address {
-  const addr = USDC_ADDRESS[chainId];
-  if (!addr) throw new Error(`No USDC address configured for chainId ${chainId}`);
-  return addr;
+/** USDC SPL mint for the active cluster. */
+export function usdcMint(cluster: string = activeCluster): PublicKey {
+  const mint = USDC_MINT[cluster];
+  if (!mint) throw new Error(`No USDC mint configured for cluster ${cluster}`);
+  return new PublicKey(mint);
 }
 
 /** "1.5" USDC → 1500000n (base units). */
 export function parseUsdc(amount: string | number): bigint {
-  return parseUnits(String(amount), USDC_DECIMALS);
+  const [whole, frac = ""] = String(amount).split(".");
+  const paddedFrac = frac.padEnd(USDC_DECIMALS, "0").slice(0, USDC_DECIMALS);
+  return BigInt(whole || "0") * 10n ** BigInt(USDC_DECIMALS) + BigInt(paddedFrac || "0");
 }
 
 /** 1500000n → "1.5" (human string). */
 export function formatUsdc(amount: bigint): string {
-  return formatUnits(amount, USDC_DECIMALS);
-}
-
-/** Read an address's USDC balance (raw bigint + formatted string). */
-export async function getUsdcBalance(
-  account: Address,
-  chainId: number = activeChainId,
-): Promise<{ raw: bigint; formatted: string }> {
-  const client = getPublicClient(chainId);
-  const raw = (await client.readContract({
-    address: usdcAddress(chainId),
-    abi: ERC20_ABI,
-    functionName: "balanceOf",
-    args: [account],
-  })) as bigint;
-  return { raw, formatted: formatUsdc(raw) };
+  const divisor = 10n ** BigInt(USDC_DECIMALS);
+  const whole = amount / divisor;
+  const frac = (amount % divisor).toString().padStart(USDC_DECIMALS, "0").replace(/0+$/, "");
+  return frac ? `${whole}.${frac}` : whole.toString();
 }
 
 /**
- * Encode an ERC-20 USDC `transfer(to, amount)` call.
- * Returns `{ to, data, value }` ready for sendTransaction / sendCalls / wagmi.
+ * Read a wallet's USDC balance (raw bigint + formatted string). A wallet that
+ * has never received USDC has no ATA yet — that's a balance of 0, not an error.
  */
-export function buildUsdcTransfer(to: Address, amount: string | number, chainId: number = activeChainId) {
-  const data = encodeFunctionData({
-    abi: ERC20_ABI,
-    functionName: "transfer",
-    args: [to, parseUsdc(amount)],
-  });
-  return { to: usdcAddress(chainId), data, value: 0n } as const;
+export async function getUsdcBalance(
+  owner: PublicKey,
+  cluster: string = activeCluster,
+): Promise<{ raw: bigint; formatted: string }> {
+  const connection = getConnection(cluster);
+  const ata = await getAssociatedTokenAddress(usdcMint(cluster), owner);
+  try {
+    const account = await getAccount(connection, ata);
+    return { raw: account.amount, formatted: formatUsdc(account.amount) };
+  } catch (err) {
+    if (err instanceof TokenAccountNotFoundError) {
+      return { raw: 0n, formatted: "0" };
+    }
+    throw err;
+  }
+}
+
+/**
+ * Build an SPL USDC transfer instruction between two wallets' ATAs.
+ * Callers must ensure the destination ATA exists first (see
+ * `use-usdc-transfer.ts`) — sending to a wallet with no USDC ATA yet fails
+ * on-chain, unlike an ERC-20 transfer to a fresh EOA.
+ */
+export async function buildUsdcTransferInstruction(
+  from: PublicKey,
+  to: PublicKey,
+  amount: string | number,
+  cluster: string = activeCluster,
+) {
+  const mint = usdcMint(cluster);
+  const [sourceAta, destAta] = await Promise.all([
+    getAssociatedTokenAddress(mint, from),
+    getAssociatedTokenAddress(mint, to),
+  ]);
+  return createTransferInstruction(sourceAta, destAta, from, parseUsdc(amount));
 }

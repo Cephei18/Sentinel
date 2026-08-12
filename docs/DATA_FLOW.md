@@ -28,9 +28,8 @@ sequenceDiagram
   participant U as Profile UI (agent-run-action)
   participant A as checkAuthorization (lib/agents)
   participant S as /api/x402/buy (server)
-  participant M as middleware (x402 gate)
-  participant PR as /api/premium
-  participant F as facilitator → Base
+  participant PR as /api/premium (x402 gate lives here)
+  participant F as PayAI facilitator → Solana
 
   U->>A: status·expiry·category·per-tx·budget
   alt blocked
@@ -38,13 +37,12 @@ sequenceDiagram
     U->>U: record limit_blocked (trust dips)
   else clear
     U->>S: POST (demo mode skips straight to simulated settle)
-    S->>M: payingFetch GET /api/premium
-    M-->>S: 402 + payment requirements
-    S->>M: retry + X-PAYMENT (signed USDC auth, agent wallet)
-    M->>F: verify + settle on Base
-    F-->>M: settlement
-    M->>PR: request proceeds
-    PR-->>S: data + X-PAYMENT-RESPONSE (tx hash)
+    S->>PR: payingFetch GET /api/premium
+    PR-->>S: 402 + v2 payment requirements
+    S->>PR: retry + PAYMENT-SIGNATURE (signed USDC tx, agent keypair)
+    PR->>F: verify + settle on Solana
+    F-->>PR: settlement
+    PR-->>S: data + PAYMENT-RESPONSE (settlement signature)
     S-->>U: { ok, data, payment }
     U->>U: record payment_success + task_completed (trust rises)
   end
@@ -68,26 +66,29 @@ two linked events: payer `payment_success` (+`counterpartyId`) and payee
 `agent-chat.tsx` (`useChat`) → `POST /api/agent` → AI SDK v6 `streamText`
 (OpenAI else Anthropic) with `commerceTools`, up to 5 steps. Read-only tools
 (balance, status, quote) execute server-side; `prepareUsdcTransfer` returns
-**unsigned calldata** streamed back as tool parts — the user signs in their
-own wallet (Privy/wagmi). Chat state is ephemeral (not in the event log).
+an **unsigned transaction** streamed back as tool parts — the user signs in
+their own wallet (Privy, Solana). Chat state is ephemeral (not in the event log).
 
 ## 5. User USDC payment + verification
 
 `usdc-payment.tsx` → `usePayment` state machine (validate → sign via
-`useUsdcTransfer`/wagmi → wait receipt) → optional server-side proof:
-`POST /api/verify-payment { hash, expectedTo, minAmount }` → viem reads the
-receipt, decodes USDC `Transfer` logs, confirms amount/recipient. Server
-verification exists precisely because "the client said it paid" is never
-trusted — the one place v1 already follows the target enforcement philosophy.
+`useUsdcTransfer`/Privy Solana wallet → wait for confirmation) → optional
+server-side proof: `POST /api/verify-payment { signature, expectedTo,
+minAmount }` → the server reads the parsed transaction over the RPC
+connection, diffs pre/post USDC token balances across every account the tx
+touched (Solana has no ABI-decoded `Transfer` event log to decode), confirms
+amount/recipient. Server verification exists precisely because "the client
+said it paid" is never trusted — the one place v1 already follows the target
+enforcement philosophy.
 
 ## 6. Environment & configuration flow
 
-`NEXT_PUBLIC_CHAIN` → `lib/chains.ts` → everything (active chain, USDC
-address, explorer, x402 network, wagmi config, scripts' equivalents).
+`NEXT_PUBLIC_SOLANA_CLUSTER` → `lib/solana.ts` → everything (active cluster,
+USDC mint, explorer, x402 network, RPC connection, scripts' equivalents).
 `clientEnv` validated at module load (browser-safe); `serverEnv()` lazy,
 server-only, throws in browser. Missing Privy id ⇒ `providers.tsx` renders the
-demo-mode tree (no Privy/wagmi mounted at all) — the reason the whole app
-works with zero configuration.
+demo-mode tree (no Privy mounted at all) — the reason the whole app works
+with zero configuration.
 
 ## 7. Seed & reset
 
@@ -101,5 +102,5 @@ consistency.
 The provider's write surface becomes API calls; the log becomes an append-only
 Postgres table (hash-chained); guardrail evaluation moves inside the server
 spend path with verdict+inputs logged; wallet signing moves to Privy server
-wallets with policy backstop. **No diagram above changes shape — only custody
-and placement.** That's the point of the seams.
+wallets (Solana) with policy backstop. **No diagram above changes shape —
+only custody and placement.** That's the point of the seams.

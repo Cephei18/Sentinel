@@ -77,7 +77,7 @@ export function ActivityFeed({
                 )}
                 {e.txHash && (
                   <a
-                    href={explorerTx(e.txHash as `0x${string}`)}
+                    href={explorerTx(e.txHash)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-brand-muted hover:text-foreground"

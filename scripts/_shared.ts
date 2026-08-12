@@ -3,36 +3,26 @@
  * they run cleanly under `tsx`. Loads env from .env.local.
  */
 import { config } from "dotenv";
-import { createPublicClient, http, type Address } from "viem";
-import { base, baseSepolia } from "viem/chains";
+import { Connection, clusterApiUrl, type Cluster } from "@solana/web3.js";
+import bs58 from "bs58";
 
 config({ path: ".env.local" });
 
-export const IS_MAINNET = process.env.NEXT_PUBLIC_CHAIN === "base";
-export const chain = IS_MAINNET ? base : baseSepolia;
-export const chainLabel = IS_MAINNET ? "Base" : "Base Sepolia";
+export const IS_MAINNET = process.env.NEXT_PUBLIC_SOLANA_CLUSTER === "mainnet-beta";
+export const cluster: "mainnet-beta" | "devnet" = IS_MAINNET ? "mainnet-beta" : "devnet";
+export const clusterLabel = IS_MAINNET ? "Solana" : "Solana Devnet";
 
-export const USDC: Record<number, Address> = {
-  8453: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-  84532: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+export const USDC_MINT: Record<string, string> = {
+  "mainnet-beta": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  devnet: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
 };
 
-export const RPC: Record<number, string> = {
-  8453: process.env.BASE_RPC_URL || "https://mainnet.base.org",
-  84532: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
-};
+export const RPC = process.env.SOLANA_RPC_URL || clusterApiUrl(cluster as Cluster);
 
-export const EXPLORER: Record<number, string> = {
-  8453: "https://basescan.org",
-  84532: "https://sepolia.basescan.org",
-};
+export const EXPLORER = "https://explorer.solana.com";
+export const explorerQuery = IS_MAINNET ? "" : `?cluster=${cluster}`;
 
-export const publicClient = createPublicClient({ chain, transport: http(RPC[chain.id]) });
-
-export const ERC20_ABI = [
-  { type: "function", name: "balanceOf", stateMutability: "view", inputs: [{ name: "a", type: "address" }], outputs: [{ type: "uint256" }] },
-  { type: "function", name: "transfer", stateMutability: "nonpayable", inputs: [{ name: "to", type: "address" }, { name: "amt", type: "uint256" }], outputs: [{ type: "bool" }] },
-] as const;
+export const connection = new Connection(RPC, "confirmed");
 
 /** Pretty console helpers. */
 export const log = {
@@ -42,3 +32,12 @@ export const log = {
   info: (m: string) => console.log(`  ${m}`),
   title: (m: string) => console.log(`\n\x1b[1m${m}\x1b[0m`),
 };
+
+/** Parse AGENT_PRIVATE_KEY: base58 (Phantom export) or a JSON byte-array string. */
+export function parseSecretKey(raw: string): Uint8Array {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("[")) {
+    return Uint8Array.from(JSON.parse(trimmed) as number[]);
+  }
+  return bs58.decode(trimmed);
+}

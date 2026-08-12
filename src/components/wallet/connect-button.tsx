@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { useWallet } from "@/hooks/use-wallet";
 import { useIsDemoMode } from "@/components/demo-mode";
 import { truncateAddress } from "@/lib/utils";
-import { chainLabel } from "@/lib/chains";
+import { clusterLabel } from "@/lib/solana";
 
-/** Drop-in wallet connect / account button powered by Privy + wagmi. */
+/** Drop-in wallet connect / account button powered by Privy's Solana wallets. */
 export function ConnectButton() {
   // In demo mode there's no wallet stack mounted — render a calm badge instead
   // of calling wallet hooks (which would have no provider).
@@ -19,8 +19,7 @@ export function ConnectButton() {
 }
 
 function ConnectButtonLive() {
-  const { ready, authenticated, address, onWrongNetwork, switchToActiveChain, login, logout } =
-    useWallet();
+  const { ready, authenticated, address, login, logout } = useWallet();
 
   if (!ready) {
     return (
@@ -41,13 +40,7 @@ function ConnectButtonLive() {
 
   return (
     <div className="flex items-center gap-2">
-      {onWrongNetwork ? (
-        <Button size="sm" variant="danger" onClick={switchToActiveChain}>
-          Switch to {chainLabel}
-        </Button>
-      ) : (
-        <Badge variant="brand">{chainLabel}</Badge>
-      )}
+      <Badge variant="brand">{clusterLabel}</Badge>
       <Badge variant="neutral" className="font-mono">
         {truncateAddress(address)}
       </Badge>

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { chainLabel, activeChainId } from "@/lib/chains";
+import { clusterLabel, activeCluster } from "@/lib/solana";
 
 /** Liveness probe + environment sanity (no secrets leaked). */
 export async function GET() {
   return NextResponse.json({
     status: "ok",
-    chain: chainLabel,
-    chainId: activeChainId,
+    chain: clusterLabel,
+    cluster: activeCluster,
     providers: {
       privy: Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID),
       openai: Boolean(process.env.OPENAI_API_KEY),

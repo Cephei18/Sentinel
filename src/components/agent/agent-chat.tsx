@@ -26,21 +26,21 @@ export function AgentChat() {
 
   return (
     <Card className="flex h-[32rem] flex-col">
-      <CardHeader className="flex-row items-center justify-between border-b border-border">
+      <CardHeader className="border-border flex-row items-center justify-between border-b">
         <CardTitle className="flex items-center gap-2">
-          <Bot className="size-4 text-brand-muted" /> Commerce Agent
+          <Bot className="text-brand-muted size-4" /> Commerce Agent
         </CardTitle>
         {isStreaming && <Badge variant="brand">thinking…</Badge>}
       </CardHeader>
 
       <CardContent className="flex-1 space-y-4 overflow-y-auto py-4">
         {messages.length === 0 && (
-          <div className="space-y-2 text-sm text-muted">
+          <div className="text-muted space-y-2 text-sm">
             <p>Try asking:</p>
             <ul className="space-y-1">
-              <li>• “What’s the USDC balance of 0x…?”</li>
-              <li>• “Quote a payment of 2.50 USDC to 0x…”</li>
-              <li>• “Prepare a 1 USDC transfer to 0x…”</li>
+              <li>• “What’s the USDC balance of 7xKX…9fQ2?”</li>
+              <li>• “Quote a payment of 2.50 USDC to 7xKX…9fQ2”</li>
+              <li>• “Prepare a 1 USDC transfer to 7xKX…9fQ2”</li>
             </ul>
           </div>
         )}
@@ -49,16 +49,16 @@ export function AgentChat() {
           <div key={m.id} className="flex gap-3 text-sm">
             <div className="mt-0.5 shrink-0">
               {m.role === "user" ? (
-                <User className="size-4 text-muted" />
+                <User className="text-muted size-4" />
               ) : (
-                <Bot className="size-4 text-brand-muted" />
+                <Bot className="text-brand-muted size-4" />
               )}
             </div>
             <div className="min-w-0 space-y-2">
               {m.parts.map((part, i) => {
                 if (part.type === "text") {
                   return (
-                    <p key={i} className="whitespace-pre-wrap leading-relaxed">
+                    <p key={i} className="leading-relaxed whitespace-pre-wrap">
                       {part.text}
                     </p>
                   );
@@ -68,7 +68,7 @@ export function AgentChat() {
                   return (
                     <div
                       key={i}
-                      className="flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1 text-xs text-muted"
+                      className="border-border bg-surface-2 text-muted flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs"
                     >
                       <Wrench className="size-3" />
                       <span className="font-mono">{part.type.replace("tool-", "")}</span>
@@ -82,7 +82,7 @@ export function AgentChat() {
         ))}
       </CardContent>
 
-      <form onSubmit={submit} className="flex gap-2 border-t border-border p-3">
+      <form onSubmit={submit} className="border-border flex gap-2 border-t p-3">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}

@@ -2,23 +2,21 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { base, baseSepolia } from "viem/chains";
-import { wagmiConfig } from "@/lib/wagmi";
-import { activeChain } from "@/lib/chains";
 import { clientEnv } from "@/lib/env";
 import { AgentsProvider } from "@/components/agents/agents-provider";
 import { DemoModeProvider } from "@/components/demo-mode";
 
 /**
  * Provider stack — ORDER MATTERS.
- *   PrivyProvider (auth + embedded wallets)
- *     └─ QueryClientProvider (wagmi's async cache)
- *         └─ WagmiProvider from @privy-io/wagmi (bridges Privy wallets → wagmi)
+ *   PrivyProvider (auth + embedded Solana wallets)
+ *     └─ QueryClientProvider (async cache for balance polling etc.)
  *
  * Privy is the single wallet layer: email/social login mints an embedded
- * wallet, and external wallets connect through the same provider.
+ * Solana wallet, and external Solana wallets (Phantom, Solflare, ...)
+ * connect through the same provider — no separate wallet-adapter stack.
+ * Solana has no wagmi-style multi-chain config to bridge in, so there's no
+ * extra provider layer beyond Privy itself.
  *
  * Mounted client-side only: Privy can't initialize during SSR/prerender
  * (it throws on a missing/invalid app id) and gating on mount also avoids
@@ -63,22 +61,18 @@ export function Providers({ children }: { children: ReactNode }) {
       <PrivyProvider
         appId={appId}
         config={{
-          // Spin up an embedded wallet automatically for users without one.
-          embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
+          // Spin up an embedded Solana wallet automatically for users without one.
+          embeddedWallets: { solana: { createOnLogin: "users-without-wallets" } },
           loginMethods: ["email", "wallet", "google"],
-          defaultChain: activeChain,
-          supportedChains: [baseSepolia, base],
           appearance: {
             theme: "dark",
-            accentColor: "#0052FF", // Base brand blue
-            walletChainType: "ethereum-only",
+            accentColor: "#14F195", // Solana brand green
+            walletChainType: "solana-only",
           },
         }}
       >
         <QueryClientProvider client={queryClient}>
-          <WagmiProvider config={wagmiConfig}>
-            <AgentsProvider>{children}</AgentsProvider>
-          </WagmiProvider>
+          <AgentsProvider>{children}</AgentsProvider>
         </QueryClientProvider>
       </PrivyProvider>
     </DemoModeProvider>

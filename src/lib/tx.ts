@@ -1,93 +1,83 @@
-import { decodeFunctionData, type Abi, type Address, type Hash } from "viem";
+import { type Transaction, type VersionedTransaction, type PublicKey } from "@solana/web3.js";
 import { EXPLORER_URL } from "./constants";
-import { activeChainId } from "./chains";
-import { getPublicClient } from "./viem";
+import { activeCluster } from "./solana";
+import { getConnection } from "./connection";
 
-/** Block-explorer deep links — never hand-build these in components. */
-export function explorerTx(hash: Hash, chainId: number = activeChainId): string {
-  return `${EXPLORER_URL[chainId] ?? EXPLORER_URL[activeChainId]}/tx/${hash}`;
+function clusterQuery(cluster: string): string {
+  return cluster === "mainnet-beta" ? "" : `?cluster=${cluster}`;
 }
 
-export function explorerAddress(address: Address, chainId: number = activeChainId): string {
-  return `${EXPLORER_URL[chainId] ?? EXPLORER_URL[activeChainId]}/address/${address}`;
+/** Block-explorer deep links — never hand-build these in components. */
+export function explorerTx(signature: string, cluster: string = activeCluster): string {
+  return `${EXPLORER_URL}/tx/${signature}${clusterQuery(cluster)}`;
+}
+
+export function explorerAddress(
+  address: string | PublicKey,
+  cluster: string = activeCluster,
+): string {
+  return `${EXPLORER_URL}/address/${address.toString()}${clusterQuery(cluster)}`;
 }
 
 /**
- * Simulate a contract call before sending. Catches reverts (insufficient
- * balance, bad args) with the actual reason instead of a failed on-chain tx.
+ * Simulate a transaction before sending. Catches failures (insufficient
+ * balance, missing ATA, bad instruction) with the actual reason instead of a
+ * failed on-chain tx.
  */
-export async function simulate(params: {
-  address: Address;
-  abi: Abi;
-  functionName: string;
-  args?: readonly unknown[];
-  account: Address;
-  chainId?: number;
-}): Promise<{ ok: true } | { ok: false; reason: string }> {
-  const client = getPublicClient(params.chainId ?? activeChainId);
+export async function simulate(
+  transaction: Transaction | VersionedTransaction,
+  cluster: string = activeCluster,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const connection = getConnection(cluster);
   try {
-    await client.simulateContract({
-      address: params.address,
-      abi: params.abi,
-      functionName: params.functionName,
-      args: params.args,
-      account: params.account,
-    });
+    const result = await connection.simulateTransaction(transaction as VersionedTransaction);
+    if (result.value.err) {
+      return { ok: false, reason: JSON.stringify(result.value.err) };
+    }
     return { ok: true };
   } catch (err) {
-    return { ok: false, reason: extractRevertReason(err) };
+    return { ok: false, reason: extractErrorReason(err) };
   }
 }
 
-/** Estimate gas for raw calldata and return both gas units and a wei cost estimate. */
-export async function estimateTxCost(params: {
-  to: Address;
-  data: `0x${string}`;
-  account: Address;
-  value?: bigint;
-  chainId?: number;
-}): Promise<{ gas: bigint; maxFeePerGas: bigint; estCostWei: bigint }> {
-  const client = getPublicClient(params.chainId ?? activeChainId);
-  const [gas, fees] = await Promise.all([
-    client.estimateGas({
-      account: params.account,
-      to: params.to,
-      data: params.data,
-      value: params.value ?? 0n,
-    }),
-    client.estimateFeesPerGas(),
-  ]);
-  const maxFeePerGas = fees.maxFeePerGas ?? 0n;
-  return { gas, maxFeePerGas, estCostWei: gas * maxFeePerGas };
-}
-
-/** Wait for a receipt and return a normalized success/failure summary. */
-export async function waitForTx(hash: Hash, chainId: number = activeChainId) {
-  const client = getPublicClient(chainId);
-  const receipt = await client.waitForTransactionReceipt({ hash });
-  return {
-    success: receipt.status === "success",
-    blockNumber: receipt.blockNumber,
-    gasUsed: receipt.gasUsed,
-    explorer: explorerTx(hash, chainId),
-    receipt,
-  };
-}
-
-/** Best-effort ABI decode of calldata for debugging "what is this tx doing". */
-export function decodeCalldata(abi: Abi, data: `0x${string}`) {
-  try {
-    return decodeFunctionData({ abi, data });
-  } catch {
-    return null;
+/** Estimate the network fee for a transaction message, in lamports. */
+export async function estimateTxFee(
+  transaction: Transaction,
+  cluster: string = activeCluster,
+): Promise<{ lamports: number }> {
+  const connection = getConnection(cluster);
+  if (!transaction.recentBlockhash) {
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
   }
+  const fee = await connection.getFeeForMessage(transaction.compileMessage());
+  return { lamports: fee.value ?? 5000 };
 }
 
-/** Pull a human-readable revert reason out of a viem error. */
-export function extractRevertReason(err: unknown): string {
+/** Poll for confirmation and return a normalized success/failure summary. */
+export async function waitForTx(signature: string, cluster: string = activeCluster) {
+  const connection = getConnection(cluster);
+  const timeoutMs = 60_000;
+  const pollMs = 1000;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const { value } = await connection.getSignatureStatus(signature);
+    if (value?.confirmationStatus === "confirmed" || value?.confirmationStatus === "finalized") {
+      return { success: !value.err, explorer: explorerTx(signature, cluster), err: value.err };
+    }
+    if (value?.err) {
+      return { success: false, explorer: explorerTx(signature, cluster), err: value.err };
+    }
+    await new Promise((resolve) => setTimeout(resolve, pollMs));
+  }
+  throw new Error(`Timed out waiting for confirmation of ${signature}`);
+}
+
+/** Pull a human-readable reason out of a Solana simulation/send error. */
+export function extractErrorReason(err: unknown): string {
   if (err && typeof err === "object") {
-    const e = err as { shortMessage?: string; details?: string; message?: string };
-    return e.shortMessage || e.details || e.message || "Unknown error";
+    const e = err as { message?: string };
+    return e.message || "Unknown error";
   }
   return String(err);
 }

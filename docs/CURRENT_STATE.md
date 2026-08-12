@@ -6,11 +6,12 @@
 
 ## TL;DR
 
-A polished, working **hackathon MVP** of the Sentinel founder loop, built in
-~2 days (3 commits) on a Next.js 16 + Base/Privy/x402 starter. The trust and
-governance *engine* is real, pure, and testable. The *system around it* is a
-client-side demo: localStorage state, browser-enforced guardrails, one live
-x402 payment path that pays the app itself.
+A polished, working **hackathon MVP** of the Sentinel founder loop, migrated
+from a Next.js 16 + Base/Privy/x402 starter to a Next.js 16 + Solana/Privy/
+x402-solana stack for the Solana Hacker House. The trust and governance
+*engine* is real, pure, and testable — and untouched by the migration. The
+*system around it* is a client-side demo: localStorage state, browser-enforced
+guardrails, one live x402 payment path that pays the app itself.
 
 ## What demonstrably works
 
@@ -22,11 +23,11 @@ x402 payment path that pays the app itself.
 | Trust deltas surfaced per event (+3/−4 with reason) | ✅ real | `projectScoreDelta` + toasts + feed |
 | Autonomy tiers gating delegation | ✅ real | `lib/agents/governance.ts` |
 | Budget recommendations, one-click apply | ✅ real | `governance-card` → `setBudget` |
-| x402 seller (402-gated endpoint) | ✅ real when `X402_PAY_TO_ADDRESS` set | `middleware.ts` → `/api/premium` |
+| x402 seller (402-gated endpoint) | ✅ real when `X402_PAY_TO_ADDRESS` set | `/api/premium` (x402-solana gate lives in the route; no middleware) |
 | x402 buyer (agent autonomously pays) | ✅ real on-chain when wallet funded; simulated fallback otherwise | `/api/x402/buy` + `lib/x402.ts` |
 | Agent-to-agent delegation + org graph | ⚠ simulated coordination (no on-chain settlement between agent wallets) | `payAgent` + `trust-graph` |
 | AI commerce chat (tool-calling, unsigned intents) | ✅ real with an LLM key | `/api/agent` + `lib/ai/*` |
-| USDC transfer via user wallet | ✅ real with Privy | `use-usdc-transfer`, `usdc-payment` |
+| USDC transfer via user wallet | ✅ real with Privy (Solana) | `use-usdc-transfer`, `usdc-payment` |
 | On-chain payment verification | ✅ real | `/api/verify-payment` |
 | Wallet-free demo mode | ✅ first-class | `providers.tsx` + `demo-mode.tsx` |
 
@@ -36,10 +37,11 @@ x402 payment path that pays the app itself.
   in localStorage (`sentinel.store.v1`). Everything else derived on read.
 - **Engine:** `src/lib/agents/` — types, reputation, governance, authorization,
   seed, format. Pure TS, no framework imports, now unit-tested.
-- **Chain plumbing:** `src/lib/` — chains/constants/env/viem/usdc/tx/x402/wagmi.
-  One switch (`NEXT_PUBLIC_CHAIN`) flips Base Sepolia ↔ Base mainnet.
+- **Chain plumbing:** `src/lib/` — solana/constants/env/connection/usdc/tx/x402.
+  One switch (`NEXT_PUBLIC_SOLANA_CLUSTER`) flips devnet ↔ mainnet-beta.
 - **Server surface:** 5 routes (`agent`, `premium`, `x402/buy`,
-  `verify-payment`, `health`) + x402 middleware. No database.
+  `verify-payment`, `health`); the x402 gate lives directly in the `premium`
+  route handler (x402-solana has no Next.js middleware helper). No database.
 - **UI:** landing, `/dashboard` (ops), `/graph` (org), `/agents/[id]` (profile);
   ~18 agent components + wallet/payment/chat components + small ui-kit.
 
@@ -47,10 +49,11 @@ x402 payment path that pays the app itself.
 
 1. **Nothing configured** → full demo mode: seeded workforce, simulated
    settlements, wallet widgets show placeholders. Entire founder flow works.
-2. **+ Privy app id** → real login + embedded wallets + USDC transfers.
+2. **+ Privy app id** → real login + embedded Solana wallets + USDC transfers.
 3. **+ LLM key** → live tool-calling commerce chat.
 4. **+ funded `AGENT_PRIVATE_KEY` & `X402_PAY_TO_ADDRESS`** → the autonomous
-   purchase settles real USDC on Base (Sepolia by default) with an explorer link.
+   purchase settles real USDC on Solana (devnet by default) with a Solana
+   Explorer link.
 
 Caveat to keep in mind: at every rung, *failures fall back to labelled
 simulation* rather than erroring — great on stage, must become explicit modes

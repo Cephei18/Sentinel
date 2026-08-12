@@ -1,37 +1,42 @@
-import axios, { type AxiosInstance } from "axios";
-import { wrapFetchWithPayment } from "x402-fetch";
-import { withPaymentInterceptor } from "x402-axios";
-import { getAgentWalletClient } from "./viem";
+import type { VersionedTransaction } from "@solana/web3.js";
+import { createX402Client } from "x402-solana/client";
+import { getAgentKeypair } from "./connection";
+import { x402Network } from "./solana";
 
 /**
- * x402 paying clients (the AGENT/BUYER side).
- *
+ * x402 paying client (the AGENT/BUYER side), on x402-solana (protocol v2).
  * x402 turns HTTP 402 "Payment Required" into a real, automatic flow:
- *   1. Client hits a paid endpoint and gets 402 + payment requirements.
- *   2. These wrappers sign a USDC payment authorization with the agent wallet.
- *   3. The request is retried with an `X-PAYMENT` header.
- *   4. The facilitator verifies + settles on Base; the server returns the data.
+ *   1. Client hits a paid endpoint and gets 402 + v2 payment requirements.
+ *   2. This wraps the agent's server-side Keypair as a wallet adapter that
+ *      signs the payment transaction directly (no Privy UI in the loop —
+ *      this is the autonomous agent, not a human wallet).
+ *   3. The request is retried with a `PAYMENT-SIGNATURE` header.
+ *   4. The facilitator verifies + settles on Solana; the server returns the data.
  *
- * All server-only — they use the agent's private key via getAgentWalletClient().
+ * Server-only — uses the agent's Solana keypair via getAgentKeypair().
  */
 
-/** A `fetch` that transparently pays x402 invoices with the agent wallet. */
+/** A `fetch` that transparently pays x402 v2 invoices with the agent keypair. */
 export function payingFetch(): typeof fetch {
-  const walletClient = getAgentWalletClient();
-  // wrapFetchWithPayment signs + retries on 402 automatically.
-  return wrapFetchWithPayment(fetch, walletClient as never) as typeof fetch;
-}
-
-/** An axios instance that transparently pays x402 invoices. */
-export function payingAxios(baseURL?: string): AxiosInstance {
-  const walletClient = getAgentWalletClient();
-  return withPaymentInterceptor(axios.create({ baseURL }), walletClient as never);
+  const keypair = getAgentKeypair();
+  const client = createX402Client({
+    wallet: {
+      address: keypair.publicKey.toBase58(),
+      signTransaction: async (tx: VersionedTransaction) => {
+        tx.sign([keypair]);
+        return tx;
+      },
+    },
+    network: x402Network as "solana" | "solana-devnet",
+  });
+  return client.fetch.bind(client) as typeof fetch;
 }
 
 /**
- * Decode the `X-PAYMENT-RESPONSE` header the server returns after settlement.
- * Contains the settlement tx hash + network — perfect for showing "proof of
- * payment" in a demo.
+ * Decode the `PAYMENT-RESPONSE` header the resource server returns after
+ * settlement (see api/premium/route.ts for where it's set). Contains the
+ * settlement signature + network — perfect for showing "proof of payment"
+ * in a demo.
  */
 export function decodePaymentResponse(headerValue?: string | null): {
   success?: boolean;

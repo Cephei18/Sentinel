@@ -9,10 +9,10 @@ Base URL: same-origin. All routes Node runtime. No authentication in v1
 KNOWN_LIMITATIONS #5).
 
 ## `GET /api/health`
-Liveness + configuration sanity. Returns active chain and boolean presence of
-each provider credential (never values).
+Liveness + configuration sanity. Returns active Solana cluster and boolean
+presence of each provider credential (never values).
 ```json
-{ "status": "ok", "chain": "Base Sepolia", "chainId": 84532,
+{ "status": "ok", "cluster": "devnet",
   "providers": { "privy": true, "openai": false, "anthropic": true,
                  "agentWallet": true, "x402Gate": true },
   "time": "…" }
@@ -24,21 +24,24 @@ Streaming tool-calling commerce agent (AI SDK v6 UI-message stream).
 - **Model:** `gpt-4o-mini` if `OPENAI_API_KEY`, else `claude-3-5-haiku-latest`
   if `ANTHROPIC_API_KEY`, else 500 with setup hint.
 - **Tools:** `getUsdcBalance`, `quotePayment`, `prepareUsdcTransfer`
-  (returns **unsigned** calldata, `requiresApproval: true`),
+  (returns an **unsigned** transaction intent, `requiresApproval: true`),
   `getTransactionStatus`. Max 5 chained steps.
 - **Returns:** UI message stream (`toUIMessageStreamResponse`).
 
 ## `GET /api/premium` — x402-gated (seller side)
-The paid resource. Gating happens in `middleware.ts` *before* this route: with
-`X402_PAY_TO_ADDRESS` set, unpaid requests receive **HTTP 402** with payment
-requirements (price `$0.01`, USDC, active network, facilitator
-`X402_FACILITATOR_URL` or the public testnet default); requests bearing a
-valid `X-PAYMENT` header settle via the facilitator and pass through.
-Unset ⇒ gate disabled (local dev). Returns demo market-data JSON.
+The paid resource. Gating is inlined directly in this route (x402-solana, the
+protocol-v2 port via PayAI, has no Next.js middleware helper — `middleware.ts`
+was removed): with `X402_PAY_TO_ADDRESS` set, unpaid requests receive **HTTP
+402** with payment requirements (price `$0.01`, USDC, active cluster,
+facilitator `X402_FACILITATOR` or the default `https://facilitator.payai.network`,
+which serves both devnet and mainnet-beta); requests bearing a valid
+`PAYMENT-SIGNATURE` header settle via the facilitator and pass through with a
+`PAYMENT-RESPONSE` header. Unset ⇒ gate disabled (local dev). Returns demo
+market-data JSON.
 
 ## `POST /api/x402/buy` — autonomous purchase (buyer side)
-Server agent wallet (from `AGENT_PRIVATE_KEY`) pays the gated endpoint via
-`payingFetch` and returns proof.
+Server agent wallet (from `AGENT_PRIVATE_KEY`, base58 or JSON byte-array) pays
+the gated endpoint via `x402-solana`'s payment-aware fetch and returns proof.
 - **Body:** none. **Success:**
   `{ ok: true, data: …, payment: { success, transaction, network, payer } }`
 - **Failure:** `{ ok: false, error }` (500).
@@ -48,16 +51,17 @@ Server agent wallet (from `AGENT_PRIVATE_KEY`) pays the gated endpoint via
 
 ## `POST /api/verify-payment`
 Server-side proof a tx moved USDC. Never trust a client's "I paid."
-- **Body:** `{ hash: 0x…64, expectedTo?: 0x…40, minAmount?: "1.5" }`
-- Reads the receipt, sums decoded USDC `Transfer` logs, checks recipient/
-  amount. **Returns:** `{ verified, amountUsdc, recipient, explorer }` or
+- **Body:** `{ signature: <base58 tx signature>, expectedTo?: <base58 address>, minAmount?: "1.5" }`
+- Reads the transaction, sums parsed SPL-token transfer instructions, checks
+  recipient (ATA)/amount. **Returns:** `{ verified, amountUsdc, recipient, explorer }` or
   `{ verified: false, reason }`.
 - Known looseness: sums transfers across recipients, keeps last recipient
   (KNOWN_LIMITATIONS #9).
 
 ## Middleware
-`middleware.ts` — x402 `paymentMiddleware` on matcher `/api/premium/:path*`
-only; no-op function when the gate is unconfigured.
+None. `middleware.ts` was removed entirely on the Solana migration —
+x402-solana has no Next.js middleware helper, so the payment gate is inlined
+directly in `/api/premium/route.ts` (see above).
 
 ---
 

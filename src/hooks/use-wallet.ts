@@ -1,37 +1,38 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { activeChainId } from "@/lib/chains";
+import { useWallets, useSignAndSendTransaction } from "@privy-io/react-auth/solana";
 
 /**
- * Unified wallet hook: one place for auth state + connected address.
- * Privy owns auth (login/logout, embedded wallets); wagmi owns the
- * connected account + chain. This hook stitches them together.
+ * Unified wallet hook: one place for auth state + the connected Solana
+ * wallet. Privy owns both auth (login/logout, embedded wallets) and the
+ * connected account on Solana — there's no separate wagmi-style account
+ * hook to stitch in.
+ *
+ * Solana has no "wrong network" / "switch chain" concept: the cluster is
+ * chosen by the app's own RPC endpoint (see lib/solana.ts), not requested
+ * from the wallet, so the old onWrongNetwork/switchToActiveChain pair has
+ * no equivalent here and is intentionally dropped.
  */
 export function useWallet() {
   const { ready, authenticated, user, login, logout } = usePrivy();
-  const { address, isConnected, connector } = useAccount();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
+  const { ready: walletsReady, wallets } = useWallets();
+  const { signAndSendTransaction } = useSignAndSendTransaction();
 
-  const onWrongNetwork = isConnected && chainId !== activeChainId;
+  const wallet = wallets[0];
 
   return {
     /** Privy SDK finished initializing. */
-    ready,
+    ready: ready && walletsReady,
     /** User has logged in via Privy. */
     authenticated,
-    /** A wallet is connected to wagmi. */
-    isConnected,
-    address,
+    /** A Solana wallet is connected. */
+    isConnected: Boolean(wallet),
+    address: wallet?.address,
     user,
-    connector,
-    chainId,
-    onWrongNetwork,
+    wallet,
+    signAndSendTransaction,
     login,
     logout,
-    /** Jump the wallet to the app's active chain. */
-    switchToActiveChain: () => switchChain({ chainId: activeChainId }),
   };
 }

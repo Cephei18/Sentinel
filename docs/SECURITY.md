@@ -17,17 +17,17 @@
 
 | Threat | Vector | Posture |
 |---|---|---|
-| Guardrail bypass | POST `/api/x402/buy` directly — server pays with no auth/authorization check | ❌ **Known P0.** Client-only enforcement. Testnet-only funds until M2 (server-side check + Privy signing policy backstop). |
-| Wallet drain / griefing | Same route, repeated | ❌ No rate limit. Mitigation now: fund minimally, testnet, rotate. M2: auth + rate limits + per-key caps. |
-| Event-log tampering | localStorage is user-editable | ❌ Inherent to v1 custody. M2: server custody, append-only, hash chain; M6: Merkle + EAS anchoring. |
+| Guardrail bypass | POST `/api/x402/buy` directly — server pays with no auth/authorization check | ❌ **Known P0.** Client-only enforcement. Devnet-only funds until M2 (server-side check + Privy signing policy backstop). |
+| Wallet drain / griefing | Same route, repeated | ❌ No rate limit. Mitigation now: fund minimally, devnet, rotate. M2: auth + rate limits + per-key caps. |
+| Event-log tampering | localStorage is user-editable | ❌ Inherent to v1 custody. M2: server custody, append-only, hash chain; M6: Merkle anchoring (mechanism TBD, see OBSERVABILITY.md open question). |
 | Trust-score gaming | Micro-payment farming, self-reported tasks | ⚠ Documented v1 weakness (TRUST_MODEL). M5: decay, amount weighting, evidence weighting. |
 | Secret leakage to client | Env mishandling | ✅ zod-validated split; `serverEnv()` throws in browser; NEXT_PUBLIC_* whitelist is the entire client surface; health route returns booleans only. |
-| Key custody | Raw hex key in env | ⚠ Acceptable testnet-only. M2: Privy server wallets (keys in wallet infra, signing-time policies). |
+| Key custody | Solana secret key (base58 or JSON byte-array) in env | ⚠ Acceptable devnet-only. Same underlying risk as the old raw-hex key. M2: Privy server wallets (keys in wallet infra, signing-time policies). |
 | Prompt injection → value movement | LLM chat manipulated into transfers | ✅ Architecture: value-moving tools return **unsigned intents**; user signs. Read-only tools can leak nothing sensitive (public chain data). Keep this invariant for every new tool. |
 | Fake payment claims | Client asserts "paid" | ✅ `/api/verify-payment` verifies on-chain (⚠ tighten multi-transfer recipient summing — #9). |
 | Malicious x402 server / facilitator | Buyer side auto-pays | ⚠ Buyer only calls our own endpoint today. M8 (paying third parties): allowlists via categories, facilitator pinning, per-counterparty limits. |
 | XSS → localStorage/state theft | Injected script | ⚠ Standard React escaping; no `dangerouslySetInnerHTML` in repo. Add CSP headers at M2 (they matter once sessions exist). |
-| Supply chain | 40+ deps, crypto libs | ⚠ pnpm lockfile committed; viem pinned. Add dependency audit + Dependabot/Renovate in CI (M1 remainder). x402 V1 packages receive security patches only — migrate (M2). |
+| Supply chain | 40+ deps, crypto libs | ⚠ pnpm lockfile committed. Add dependency audit + Dependabot/Renovate in CI (M1 remainder). x402 migrated off deprecated V1 packages to `x402-solana` (protocol v2, PayAI) — done. |
 
 ## Rules for contributors (enforced in review)
 

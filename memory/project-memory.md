@@ -7,10 +7,13 @@
 ## What this project is (10 seconds)
 
 Sentinel = trust + governance infrastructure for autonomous AI workforces.
-Hackathon MVP (Base × Privy × x402, June 2026) demonstrating: hire agent with
-scoped budget → guardrail blocks out-of-scope spend → real x402 USDC settlement
-on Base → deterministic explainable trust score → autonomy tiers → trust-driven
-budget allocation → org graph of agent-to-agent delegation.
+Originally a Base × Privy × x402 hackathon MVP (June 2026 — won 2nd place at a
+Base × Privy hackathon); migrated to Solana (Aug 2026) for a Solana Hacker
+House submission — a personal shift into the Solana ecosystem, not a response
+to a technical failure of the Base version. Demonstrates: hire agent with
+scoped budget → guardrail blocks out-of-scope spend → real x402 USDC
+settlement on Solana → deterministic explainable trust score → autonomy tiers
+→ trust-driven budget allocation → org graph of agent-to-agent delegation.
 
 ## Ground truth people forget
 
@@ -22,19 +25,23 @@ budget allocation → org graph of agent-to-agent delegation.
 - **Demo mode is a first-class product feature** of the MVP: no Privy app id →
   entire founder flow works with simulated settlements, clearly labelled. Any
   refactor must keep the wallet-free path working until we decide otherwise.
-- **The x402 payment is real** when `AGENT_PRIVATE_KEY` (funded, Base Sepolia
-  USDC) + `X402_PAY_TO_ADDRESS` are set; the app pays *itself* ($0.01) via
-  `/api/x402/buy` → 402-gated `/api/premium`.
+- **The x402 payment is real** when `AGENT_PRIVATE_KEY` (funded, devnet USDC,
+  base58 or JSON byte-array — not hex) + `X402_PAY_TO_ADDRESS` are set; the app
+  pays *itself* ($0.01) via `/api/x402/buy` → 402-gated `/api/premium`, gated
+  inline in the route itself (`middleware.ts` was deleted — x402-solana has no
+  Next.js middleware helper).
 - **Next.js here is v16** — APIs/conventions may differ from training data;
   check `node_modules/next/dist/docs/` before writing framework code (per
   AGENTS.md).
-- **viem is pinned 2.52.2 via pnpm override** — multiple viem copies in the
-  graph cause TS type mismatch errors. Don't "upgrade" casually.
+- **Chain stack is Solana** (`@solana/web3.js` + `@solana/spl-token`, x402 via
+  `x402-solana`/PayAI protocol v2) — no viem/wagmi/OnchainKit left, and no
+  dependency-version pin currently needed.
 - Repo git history is 3 shallow commits; the codebase itself is the archaeology.
 
 ## Environment / accounts
 
-- Chain default: Base Sepolia (`NEXT_PUBLIC_CHAIN`, flip to `base` for mainnet).
+- Cluster default: devnet (`NEXT_PUBLIC_SOLANA_CLUSTER`, flip to
+  `mainnet-beta` for mainnet). No runtime chain-switching.
 - `.env.local` exists locally, untracked. `.env.example` documents every var.
 - Useful scripts: `pnpm wallet:new`, `check-env`, `preflight`, `balance`,
   `send-usdc` (backup demo payment path).
@@ -58,3 +65,7 @@ budget allocation → org graph of agent-to-agent delegation.
   research, context system created (`context/`, `docs/`, `memory/`), audit and
   roadmap written, engine test suite added. See `docs/NEXT_STEPS.md` for the
   hand-off state.
+- **2026-08-12** — Base/EVM → Solana migration for a Solana Hacker House
+  submission. Full chain-touching stack ported; `lib/agents/` engine
+  untouched, all 39 tests pass unmodified. See `docs/DECISIONS.md`
+  (ADR-013–016) and `memory/decision-log.md` (D-017–020) for the decisions.

@@ -7,7 +7,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { chainLabel } from "@/lib/chains";
+import { clusterLabel } from "@/lib/solana";
 import { BRAND } from "@/lib/brand";
 
 const PILLARS = [
@@ -52,7 +52,7 @@ export default function Home() {
         <section className="flex flex-col items-center py-20 text-center sm:py-28">
           <motion.div custom={0} variants={fade} initial="hidden" animate="show">
             <Badge variant="brand" className="mb-5">
-              Base · Privy · x402 — live on {chainLabel}
+              Solana · Privy · x402 — live on {clusterLabel}
             </Badge>
           </motion.div>
           <motion.h1
@@ -143,7 +143,7 @@ export default function Home() {
       </main>
 
       <footer className="border-border/60 text-muted border-t py-6 text-center text-sm">
-        {BRAND.name} · Built for the Base + Privy hackathon · {chainLabel}
+        {BRAND.name} · Built for the Solana Hacker House · {clusterLabel}
       </footer>
     </div>
   );

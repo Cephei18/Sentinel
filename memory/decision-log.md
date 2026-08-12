@@ -4,6 +4,39 @@
 > why, consequences. Promote long-lived architectural decisions into
 > `docs/DECISIONS.md` as numbered ADRs; this file is the working notebook.
 
+## 2026-08-12 — Base/EVM → Solana migration
+
+- **D-017 · Migrate from Base/EVM to Solana.** Not a technical failure of the
+  Base version (it won 2nd place at a Base × Privy hackathon). Driver: repo
+  owner is personally shifting into the Solana ecosystem and wants Sentinel as
+  a flagship proof-of-work project + a Solana Hacker House submission.
+  `viem`/`wagmi`/OnchainKit → `@solana/web3.js` + `@solana/spl-token`; hex
+  addresses/hashes → base58; "chain" → "cluster" (devnet default,
+  mainnet-beta prod), still no runtime switching. `lib/chains.ts` →
+  `lib/solana.ts`, `lib/viem.ts` → `lib/connection.ts`, `wagmi.ts` +
+  `middleware.ts` deleted. **`lib/agents/` needed zero changes** — full import
+  audit + all 39 vitest tests pass unmodified, which is the real validation of
+  the D-004/ADR-003 layering bet. Promoted to ADR-013.
+- **D-018 · Kept Privy over `@solana/wallet-adapter-react`.** Reconfigured for
+  Solana (`embeddedWallets.solana`, `walletChainType: "solana-only"`) instead
+  of standing up a second wallet stack. Preserves the existing login UX;
+  `@privy-io/wagmi` dropped (nothing left to bridge). Privy-as-identity-layer
+  (D-006) stands; the wagmi-bridge detail of it doesn't. Promoted to ADR-014.
+- **D-019 · Ported x402 via `x402-solana` (PayAI, protocol v2) rather than cut
+  the payment-rail demo.** New `PAYMENT-SIGNATURE`/`PAYMENT-RESPONSE` headers;
+  facilitator `facilitator.payai.network` (devnet + mainnet-beta, replaces
+  `x402.org/facilitator`). `middleware.ts` deleted outright — x402-solana has
+  no Next.js middleware helper — gate now lives inline in
+  `/api/premium/route.ts`. Why port instead of cut: Solana already carries
+  ~65% of x402 volume, and "agent autonomously pays a gated API" is one of the
+  five load-bearing product ideas, not a peripheral demo. Also completes the
+  x402-V1→V2 migration D-005/ADR-012 flagged. Promoted to ADR-015.
+- **D-020 · Collapsed RPC env vars from two pairs to one.** Base-era config had
+  mainnet/testnet × client/server RPC vars (4). Solana has no runtime
+  chain-switching, so it's now just `SOLANA_RPC_URL` /
+  `NEXT_PUBLIC_SOLANA_RPC_URL`, picked by `NEXT_PUBLIC_SOLANA_CLUSTER`.
+  Promoted to ADR-016.
+
 ## 2026-07-03 — Founding-engineer onboarding pass (this repo transformation)
 
 - **D-016 · Seed strengthened so Probe stays Supervised.** Test canary caught

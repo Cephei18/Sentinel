@@ -6,32 +6,33 @@ pnpm dev                     # dev server
 pnpm build && pnpm start     # prod build + serve
 pnpm preflight               # typecheck + lint + check-env (run before demo)
 pnpm check-env               # validate .env.local
-pnpm wallet:new              # mint agent wallet
-pnpm balance [address]       # ETH + USDC balance
+pnpm wallet:new              # mint agent keypair
+pnpm balance [address]       # SOL + USDC balance
 pnpm send-usdc <to> <amt>    # CLI USDC transfer
 pnpm format                  # prettier write
 vercel / vercel --prod       # deploy
 ```
 
-## Addresses & networks
-| | Base Sepolia (84532) | Base (8453) |
+## Addresses & clusters
+| | Devnet | Mainnet-beta |
 | --- | --- | --- |
-| USDC | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
-| Explorer | sepolia.basescan.org | basescan.org |
-| RPC | https://sepolia.base.org | https://mainnet.base.org |
+| USDC mint | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |
+| Explorer | explorer.solana.com?cluster=devnet | explorer.solana.com |
+| RPC | https://api.devnet.solana.com | https://api.mainnet-beta.solana.com |
 
-USDC decimals: **6**. x402 testnet facilitator: `https://x402.org/facilitator`.
+USDC decimals: **6** (held in Associated Token Accounts, not the wallet
+address itself). x402 facilitator (devnet + mainnet): `https://facilitator.payai.network`.
 
 ## Faucets
-- Base Sepolia ETH — https://portal.cdp.coinbase.com/products/faucet
-- Base Sepolia USDC — https://faucet.circle.com
+- Solana devnet SOL — https://faucet.solana.com
+- Solana devnet USDC — https://faucet.circle.com (select "Solana Devnet")
 
 ## Copy-paste snippets
 
 **USDC checkout card**
 ```tsx
 import { UsdcPayment } from "@/components/payment/usdc-payment";
-<UsdcPayment recipient="0x..." amount="2.50" label="Buy Report" />
+<UsdcPayment recipient="Base58Address..." amount="2.50" label="Buy Report" />
 ```
 
 **Wallet state**
@@ -43,27 +44,34 @@ const { formatted } = useUsdcBalance(address);
 **Programmatic payment**
 ```tsx
 const { pay, status, explorerUrl } = usePayment();
-await pay("0xRecipient", "1.00");
+await pay("Base58RecipientAddress", "1.00");
 ```
 
-**Encode a USDC transfer (raw)**
+**Build a USDC transfer instruction (raw)**
 ```ts
-import { buildUsdcTransfer } from "@/lib/usdc";
-const { to, data } = buildUsdcTransfer("0x...", "1.5"); // → sendTransaction / sendCalls
+import { buildUsdcTransferInstruction } from "@/lib/usdc";
+const ix = await buildUsdcTransferInstruction(fromPubkey, toPubkey, "1.5");
+// → add to a Transaction, then signAndSendTransaction via the connected wallet
 ```
 
 **Agent pays an x402 endpoint (server)**
 ```ts
 import { payingFetch, decodePaymentResponse } from "@/lib/x402";
 const res = await payingFetch()("https://api.example.com/paid");
-const settlement = decodePaymentResponse(res.headers.get("x-payment-response"));
+const settlement = decodePaymentResponse(res.headers.get("payment-response"));
 ```
 
-**Gate a route with x402** (add to `src/middleware.ts` routes map)
+**Gate a route with x402** — x402-solana ships no Next.js middleware helper;
+implement extract/verify/settle directly in the route handler (see
+`src/app/api/premium/route.ts`)
 ```ts
-"/api/your-endpoint": { price: "$0.05", network, config: { description: "..." } }
+import { X402PaymentHandler } from "x402-solana/server";
+const x402 = new X402PaymentHandler({ network, treasuryAddress: payTo, facilitatorUrl });
+const requirements = await x402.createPaymentRequirements(
+  { amount: "50000", asset: { address: usdcMint().toBase58(), decimals: 6 }, description: "..." },
+  resourceUrl,
+);
 ```
-Then add the path to `export const config.matcher`.
 
 **Add an AI tool** — edit `src/lib/ai/tools.ts`
 ```ts
@@ -78,7 +86,7 @@ myTool: tool({
 ```ts
 await fetch("/api/verify-payment", {
   method: "POST",
-  body: JSON.stringify({ hash, expectedTo, minAmount: "1.0" }),
+  body: JSON.stringify({ signature, expectedTo, minAmount: "1.0" }),
 });
 ```
 

@@ -12,12 +12,12 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Base](https://img.shields.io/badge/Base-USDC-0052FF?logo=coinbase&logoColor=white)](https://base.org)
+[![Solana](https://img.shields.io/badge/Solana-USDC-14F195?logo=solana&logoColor=white)](https://solana.com)
 [![Privy](https://img.shields.io/badge/Privy-Embedded_Wallets-6A4DFF)](https://privy.io)
-[![x402](https://img.shields.io/badge/x402-Autonomous_Payments-16C784)](https://github.com/coinbase/x402)
+[![x402](https://img.shields.io/badge/x402-Autonomous_Payments-16C784)](https://github.com/PayAINetwork/x402-solana)
 [![Status](https://img.shields.io/badge/build-passing-16C784)](#run-it)
 
-<sub>Next.js 16 · React 19 · Tailwind v4 · Framer Motion · Vercel AI SDK v6 · wagmi/viem 2</sub>
+<sub>Next.js 16 · React 19 · Tailwind v4 · Framer Motion · Vercel AI SDK v6 · @solana/web3.js</sub>
 
 <br />
 
@@ -31,7 +31,7 @@
 
 The next company won't be built only from humans, departments, and contractors. Founders will assemble a workforce of **autonomous AI workers** — a research agent, a growth agent, a procurement agent — that spend money, buy APIs, hire each other, and coordinate on their own.
 
-With **x402** and stablecoins, that already works: an agent can pay for a service, or another agent's work, autonomously — settled in USDC on Base in seconds. Which opens the question no infrastructure answers today:
+With **x402** and stablecoins, that already works: an agent can pay for a service, or another agent's work, autonomously — settled in USDC on Solana in seconds. Which opens the question no infrastructure answers today:
 
 > ### How does a founder *manage, trust, govern, and allocate capital* to a workforce of autonomous AI workers?
 
@@ -55,13 +55,13 @@ Right now you hand an agent a key and hope. **Sentinel is the operating system f
 |---|---|---|---|
 | 1 | **Hire** | Bring on an AI worker with a scoped budget (budget · per-tx · expiry · categories) | `/dashboard` → *Hire AI worker* |
 | 2 | **Govern** | Pause a worker, let it attempt a purchase → **blocked by guardrail**, reliability dips, logged | `/agents/[id]` |
-| 3 | **Settle** | Resume, run it → an **x402 USDC payment** settles on Base, trust rises live | `/agents/[id]` |
+| 3 | **Settle** | Resume, run it → an **x402 USDC payment** settles on Solana, trust rises live | `/agents/[id]` |
 | 4 | **Delegate** | A trusted worker hires another (trust-aware) → a payment edge animates, both reputations evolve | `/graph` |
 | 5 | **Allocate** | Sentinel recommends scaling the reliable worker's budget — apply it in one click | `/agents/[id]` → *Governance* |
 
 Every trust change surfaces as an explainable delta — `Trust +3 · Successful x402 settlement` · `Trust −4 · Authorization guardrail` — as a live toast **and** a permanent line in the operations log. A worker's trust sets its **autonomy tier** — `Supervised → Trusted → Autonomous` — and only sufficiently reliable workers may delegate to others.
 
-> 🔒 **Bulletproof demo.** The whole founder flow — graph, hire, govern, block, delegate, allocate — runs on **seeded client state with no wallet, key, or internet**. The on-chain x402 settlement is real when a funded wallet is configured, and falls back to a clearly-labelled simulation otherwise. The demo never dead-ends.
+> 🔒 **Bulletproof demo.** The whole founder flow — graph, hire, govern, block, delegate, allocate — runs on **seeded client state with no wallet, key, or internet**. The on-chain x402 settlement is real when a funded devnet wallet is configured, and falls back to a clearly-labelled simulation otherwise. The demo never dead-ends.
 
 ---
 
@@ -73,22 +73,22 @@ Every trust change surfaces as an explainable delta — `Trust +3 · Successful 
 ### 🔐 Privy
 **Delegated authority + embedded wallets.**
 
-Single identity/wallet layer ([providers.tsx](src/components/providers.tsx)). Email/social login mints an embedded wallet that bridges into wagmi. The user delegates *scoped* spend authority to a worker rather than sharing keys — value-moving AI tools return **unsigned intents** ([tools.ts](src/lib/ai/tools.ts)).
+Single identity/wallet layer ([providers.tsx](src/components/providers.tsx)), configured for Solana embedded + external wallets. Email/social login mints an embedded Solana wallet. The user delegates *scoped* spend authority to a worker rather than sharing keys — value-moving AI tools return **unsigned intents** ([tools.ts](src/lib/ai/tools.ts)).
 
 </td><td width="33%" valign="top">
 
 ### ⚡ x402
 **Autonomous, HTTP-native payments — both sides.**
 
-*Seller:* [middleware.ts](src/middleware.ts) gates [/api/premium](src/app/api/premium/route.ts) with HTTP `402`.
-*Buyer:* [`payingFetch`](src/lib/x402.ts) signs a USDC authorization on a `402` and retries; [/api/x402/buy](src/app/api/x402/buy/route.ts) is the agent paying for a service **by itself**, gated by its own authorization.
+*Seller:* [/api/premium](src/app/api/premium/route.ts) runs the `x402-solana` extract/verify/settle flow inline and gates the route with HTTP `402` (protocol v2 has no Next.js middleware helper, so this now lives directly in the route handler — there is no `middleware.ts` anymore).
+*Buyer:* [`payingFetch`](src/lib/x402.ts) signs a USDC payment on a `402` and retries; [/api/x402/buy](src/app/api/x402/buy/route.ts) is the agent paying for a service **by itself**, gated by its own authorization.
 
 </td><td width="33%" valign="top">
 
-### 🔵 Base + USDC
+### 🟢 Solana + USDC
 **The settlement layer.**
 
-One switch — `NEXT_PUBLIC_CHAIN` — drives the active chain, USDC address, explorer, and x402 network across the app ([chains.ts](src/lib/chains.ts)). Defaults to Base Sepolia; flip to Base mainnet in one line.
+One switch — `NEXT_PUBLIC_SOLANA_CLUSTER` — drives the active cluster, USDC mint, explorer, and x402 network across the app ([solana.ts](src/lib/solana.ts)). Defaults to devnet; flip to mainnet-beta in one line. Solana carries roughly 65% of all x402 transaction volume today, and Solana Foundation is a premier member of the x402 Foundation.
 
 </td></tr>
 </table>
@@ -117,6 +117,8 @@ Each factor carries a plain-language reason, and the score reports a **confidenc
 
 > This is the seam where a production system plugs in on-chain attestations, counterparty ratings, and anomaly models — the shape stays the same.
 
+> The engine above (`src/lib/agents/`) is pure TypeScript with zero chain imports — it needed no changes to move from Base to Solana. All 39 tests pass unmodified; only the chain-plumbing layer around it was rewritten.
+
 ---
 
 ## ◆ Architecture
@@ -124,11 +126,11 @@ Each factor carries a plain-language reason, and the score reports a **confidenc
 ```
 app/
   page.tsx              ▸ landing — "enter the network"
-  dashboard/            ▸ Operations: roster, live stats, workforce intelligence
-  graph/                ▸ Organization graph + agent-to-agent delegation
-  agents/[id]/          ▸ worker profile: trust ring, breakdown, governance, run
-  api/                  ▸ agent (AI) · premium (x402 seller) · x402/buy (buyer) · verify-payment
-  middleware.ts         ▸ x402 payment gate
+  dashboard/             ▸ Operations: roster, live stats, workforce intelligence
+  graph/                 ▸ Organization graph + agent-to-agent delegation
+  agents/[id]/           ▸ worker profile: trust ring, breakdown, governance, run
+  api/                  ▸ agent (AI) · premium (x402 seller, extract/verify/settle inline) ·
+                           x402/buy (buyer) · verify-payment
 
 lib/agents/             ▸ the brain — framework-agnostic, pure, testable
   types.ts                Agent · Authorization · AgentEvent
@@ -171,21 +173,21 @@ pnpm preflight        # typecheck + lint + env check (run before demoing)
 | Variable | Scope | Required | Purpose |
 |---|:---:|:---:|---|
 | `NEXT_PUBLIC_PRIVY_APP_ID` | client | for wallets¹ | Privy app id — [dashboard.privy.io](https://dashboard.privy.io) |
-| `NEXT_PUBLIC_CHAIN` | client | – | `base-sepolia` (default) or `base` |
+| `NEXT_PUBLIC_SOLANA_CLUSTER` | client | – | `devnet` (default) or `mainnet-beta` |
 | `OPENAI_API_KEY` *or* `ANTHROPIC_API_KEY` | server | for AI agent | powers the tool-calling commerce agent |
-| `AGENT_PRIVATE_KEY` | server | for real x402 | server agent wallet (`0x…`, 32-byte hex) — `pnpm wallet:new` |
-| `X402_PAY_TO_ADDRESS` | server | for real x402 | wallet that receives x402 payments — activates the gate |
-| `BASE_RPC_URL` · `BASE_SEPOLIA_RPC_URL` | server | – | dedicated RPCs (defaults to public) |
-| `NEXT_PUBLIC_ONCHAINKIT_API_KEY` · `X402_FACILITATOR_URL` | mixed | – | optional integrations |
+| `AGENT_PRIVATE_KEY` | server | for real x402 | server agent wallet (base58 secret key or JSON byte-array) — `pnpm wallet:new` |
+| `X402_PAY_TO_ADDRESS` | server | for real x402 | Solana address that receives x402 payments — activates the gate |
+| `SOLANA_RPC_URL` · `NEXT_PUBLIC_SOLANA_RPC_URL` | server/client | – | dedicated RPCs (defaults to public cluster RPC) |
+| `X402_FACILITATOR_URL` | server | – | optional override; defaults to PayAI's facilitator |
 
 <sub>¹ Without a Privy app id the app runs in **demo mode** — the entire workforce experience works; only wallet/on-chain widgets show placeholders.</sub>
 
-Fund the agent wallet on testnet: [ETH faucet](https://portal.cdp.coinbase.com/products/faucet) · [USDC faucet](https://faucet.circle.com).
+Fund the agent wallet on devnet: [SOL faucet](https://faucet.solana.com) · [USDC faucet](https://faucet.circle.com) (select Solana Devnet).
 
 ```bash
 pnpm test             # trust-engine test suite (the executable spec)
 pnpm build            # production build
-pnpm balance [addr]   # ETH + USDC balance
+pnpm balance [addr]   # SOL + USDC balance
 pnpm send-usdc <to> <amt>   # CLI USDC transfer (guaranteed-working backup payment)
 ```
 
@@ -212,4 +214,4 @@ pnpm send-usdc <to> <amt>   # CLI USDC transfer (guaranteed-working backup payme
 
 **Demo era:** [Demo flow](docs/DEMO_FLOW.md) · [Pitch deck](docs/SLIDES.md) · [Quickstart](docs/QUICKSTART.md) · [Common errors](docs/COMMON_ERRORS.md) · [Cheatsheet](docs/CHEATSHEET.md)
 
-<div align="center"><sub>Built for the Base × Privy × x402 hackathon.</sub></div>
+<div align="center"><sub>Built for the Solana Hacker House.</sub></div>

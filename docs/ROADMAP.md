@@ -35,13 +35,13 @@ inverted — client-enforced, server pays blindly. This milestone is existential
 (hash-chain events from day one); API routes for the `agents-provider` surface
 (the seam was built for this); guardrail evaluated **server-side** in
 `/api/x402/buy` (and every future spend path), verdict + full inputs logged;
-replace raw `AGENT_PRIVATE_KEY` with **Privy server wallets + signing-time
-policies** (hard backstop); migrate x402 V1 packages → `@x402/*` V2; auth +
-rate limiting on all value routes.
+replace raw `AGENT_PRIVATE_KEY` with **Privy server wallets (Solana) +
+signing-time policies** (hard backstop); auth + rate limiting on all value
+routes. (The x402 V1→V2 migration originally scoped here is done — the repo
+already runs on `x402-solana`, protocol v2, as of the Solana port.)
 **Depends on:** M1 (tests protect the engine through the move).
-**Risk:** x402 V2 migration churn; Privy server-wallet API differences — spike
-first. This is the largest single step; split into store→enforcement→wallet if
-needed.
+**Risk:** Privy server-wallet API differences on Solana — spike first. This is
+the largest single step; split into store→enforcement→wallet if needed.
 
 ## M3 — Tenancy + operator dashboard
 **Why:** first external users need orgs, roles, and a real login — and the
@@ -76,7 +76,9 @@ not intuition.
 evidence is also our stickiness (system-of-record gravity). Research: auditors
 now flag unattributed privileged agent actions.
 **Contents:** tamper-evident log verification (hash-chain check endpoint,
-Merkle batching, EAS-anchored roots on Base); decision "why-trail" exports
+Merkle batching, anchored roots on-chain — Solana has no direct EAS
+equivalent, so the anchoring mechanism itself is an open research question for
+this milestone, not a settled choice); decision "why-trail" exports
 (inputs + policy version + verdict); OTel GenAI-conformant tracing; PII
 redaction before write; kill-switch and human-override attestation; Sentinel's
 own SOC2 Type I track.
@@ -96,10 +98,11 @@ gateways — do not build a gateway); approval-request objects
 trust/autonomy loop attached, or Permit.io/Cedar commoditize us.
 
 ## M8 — Multi-rail + billing
-**Why:** x402 is the beachhead, not the bet (volume −92% off peak); AP2
-mandates and virtual cards reach fiat enterprises. Also: charge money.
-**Contents:** rail adapters (x402 V2, AP2 mandate verification, virtual-card
-issuing partner); rail-neutral ledger schema (already true — keep it);
+**Why:** x402 is the beachhead, not the bet — Solana already carries roughly
+65% of all x402 volume, but AP2 mandates and virtual cards are still needed to
+reach fiat enterprises. Also: charge money.
+**Contents:** rail adapters (x402-solana, AP2 mandate verification,
+virtual-card issuing partner); rail-neutral ledger schema (already true — keep it);
 Stripe billing on per-agent + per-decision metering from M4.
 **Depends on:** M4. **Risk:** each rail is a partnership + compliance surface;
 sequence by customer demand, not completeness.
@@ -107,8 +110,10 @@ sequence by customer demand, not completeness.
 ## M9 — Portable reputation & marketplace surface
 **Why:** the long-term moat is the behavioral corpus; portability
 (attestations) makes Sentinel scores an ecosystem primitive rather than a silo.
-**Contents:** signed trust-snapshot attestations via EAS on Base;
-ERC-8004-compatible identity mapping; score-sharing consent model;
+**Contents:** signed trust-snapshot attestations (anchoring mechanism TBD —
+Solana has no direct EAS equivalent; open research question, see M6);
+portable identity mapping compatible with emerging agent-identity standards;
+score-sharing consent model;
 trust-aware discovery API ("hire the most reliable provider").
 **Depends on:** M5 (scores worth porting), M6 (integrity story).
 **Risk:** Sybil/gaming goes adversarial the moment scores are public —

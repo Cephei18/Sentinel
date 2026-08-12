@@ -11,13 +11,24 @@ config({ path: ".env.local" });
 type Check = { key: string; required: boolean; hint: string };
 
 const CHECKS: Check[] = [
-  { key: "NEXT_PUBLIC_PRIVY_APP_ID", required: true, hint: "dashboard.privy.io → App → App ID" },
-  { key: "NEXT_PUBLIC_CHAIN", required: false, hint: "'base-sepolia' (default) or 'base'" },
-  { key: "OPENAI_API_KEY", required: false, hint: "enables the AI agent (or use ANTHROPIC_API_KEY)" },
+  {
+    key: "NEXT_PUBLIC_PRIVY_APP_ID",
+    required: true,
+    hint: "dashboard.privy.io → App → App ID (enable Solana embedded wallets)",
+  },
+  {
+    key: "NEXT_PUBLIC_SOLANA_CLUSTER",
+    required: false,
+    hint: "'devnet' (default) or 'mainnet-beta'",
+  },
+  {
+    key: "OPENAI_API_KEY",
+    required: false,
+    hint: "enables the AI agent (or use ANTHROPIC_API_KEY)",
+  },
   { key: "ANTHROPIC_API_KEY", required: false, hint: "alt AI provider" },
   { key: "AGENT_PRIVATE_KEY", required: false, hint: "server agent wallet — pnpm wallet:new" },
   { key: "X402_PAY_TO_ADDRESS", required: false, hint: "receiving wallet — activates x402 gate" },
-  { key: "NEXT_PUBLIC_ONCHAINKIT_API_KEY", required: false, hint: "CDP key for OnchainKit components" },
 ];
 
 let hardFail = false;

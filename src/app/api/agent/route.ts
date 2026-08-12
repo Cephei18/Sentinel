@@ -4,7 +4,7 @@ import { streamText, convertToModelMessages, stepCountIs, type UIMessage } from 
 import { commerceTools } from "@/lib/ai/tools";
 import { COMMERCE_AGENT_SYSTEM } from "@/lib/ai/system";
 
-// Wallet-aware tools touch viem → run on Node, not edge.
+// Wallet-aware tools touch @solana/web3.js → run on Node, not edge.
 export const runtime = "nodejs";
 export const maxDuration = 30;
 

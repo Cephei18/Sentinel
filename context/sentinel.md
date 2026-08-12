@@ -14,7 +14,7 @@
 
 Companies are beginning to operate fleets of autonomous AI agents that spend money,
 call paid APIs, hire other agents, and act with real economic consequence. Payment
-rails for this already exist (x402 + USDC on Base settles machine-to-machine payments
+rails for this already exist (x402 + USDC on Solana settles machine-to-machine payments
 in seconds). What does **not** exist is the management layer a responsible operator
 needs before handing an agent financial authority:
 
@@ -84,7 +84,7 @@ governance. Shorthand: **Stripe + Rippling + GitHub, for AI agents.**
 
 ## Current implementation status
 
-The repository contains the hackathon MVP (Base × Privy × x402 hackathon): a
+The repository contains the hackathon MVP (Solana × Privy × x402 hackathon): a
 Next.js 16 app demonstrating the full founder loop — hire → govern → block →
 settle → delegate → allocate — on seeded client-side state, with a real x402/USDC
 settlement path when a funded wallet is configured. The trust engine

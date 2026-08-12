@@ -10,7 +10,7 @@
 1. **Product name.** "Sentinel" is saturated (Microsoft Sentinel, SentinelOne,
    Sentinel SCA, several OSS agent-governance projects). Decide before any
    public URL/SDK/package name exists. Evidence: `memory/research-notes.md`.
-2. **First-customer bet.** Crypto-native agent teams (x402/Base, leads with
+2. **First-customer bet.** Crypto-native agent teams (x402/Solana, leads with
    payments) vs governance-first (rail-neutral, leads with policy+audit).
    Current working bet: crypto-native first (see `VISION.md`) — validate with
    3–5 design-partner conversations before M2 hardens the wrong surface.
@@ -27,8 +27,10 @@
 6. **M2 spike: Privy server wallets + policy engine** — prove the
    signing-time-backstop pattern (create wallet, attach spend policy, watch an
    out-of-policy signature get refused). Decision input for ADR-006 execution.
-7. **M2 spike: `@x402/*` V2 migration** — port `middleware.ts` + `payingFetch`
-   on a branch; measure blast radius (V1 packages are deprecated).
+7. ~~**M2 spike: x402 V2 migration**~~ **Done.** Ported to `x402-solana`
+   (PayAI, protocol v2); `middleware.ts` deleted outright — x402-solana has no
+   Next.js middleware helper, so the gate now lives directly in
+   `/api/premium/route.ts`.
 8. **Event store schema draft** — Postgres append-only `events` table with
    hash chain + `agents`/`authorizations`; write the migration and the
    provider-seam API contract (`API_SPEC.md` v2 sketch is the start).

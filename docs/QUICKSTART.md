@@ -18,24 +18,29 @@ agent simply stay disabled until you fill them in.
 | `NEXT_PUBLIC_PRIVY_APP_ID` | [dashboard.privy.io](https://dashboard.privy.io) → create app → **App ID** | ✅ for login |
 | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com/api-keys) | ⬜ (or Anthropic) for agent |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | ⬜ alt agent provider |
-| `NEXT_PUBLIC_ONCHAINKIT_API_KEY` | [portal.cdp.coinbase.com](https://portal.cdp.coinbase.com) | ⬜ OnchainKit components |
 
 ### Privy setup (the one required step)
 1. Create an app in the Privy dashboard.
 2. Copy the **App ID** → `NEXT_PUBLIC_PRIVY_APP_ID` in `.env.local`.
-3. In Privy → **Login methods**, enable Email, Wallet, Google.
-4. In **Allowed origins**, add `http://localhost:3000` (and your Vercel URL later).
+3. In Privy → **Wallet configuration**, enable **Solana** (embedded wallets → Solana; the
+   starter's Privy config sets `walletChainType: "solana-only"`, so make sure Solana is the
+   enabled chain type for embedded wallets in the dashboard too).
+4. In Privy → **Login methods**, enable Email, Wallet, Google.
+5. In **Allowed origins**, add `http://localhost:3000` (and your Vercel URL later).
 
 ## 3. Create + fund the agent wallet
 
 ```bash
-pnpm wallet:new          # prints a fresh address + private key
+pnpm wallet:new          # prints a fresh Solana address + secret key
 # paste AGENT_PRIVATE_KEY (and optionally X402_PAY_TO_ADDRESS) into .env.local
 ```
 
-Fund it on **Base Sepolia**:
-- ETH (for gas): https://portal.cdp.coinbase.com/products/faucet
-- USDC (for payments): https://faucet.circle.com  → choose **Base Sepolia**
+`AGENT_PRIVATE_KEY` accepts either a base58 secret key (Phantom's "export private key"
+format) or a JSON byte-array string (the `solana-keygen` / Solana CLI format).
+
+Fund it on **devnet**:
+- SOL (for fees): https://faucet.solana.com
+- USDC (for payments): https://faucet.circle.com → select **Solana Devnet**
 
 Check it landed:
 
@@ -52,10 +57,12 @@ pnpm preflight     # typecheck + lint + env (run before your demo)
 
 ## 5. Try the flows
 - Open `/dashboard` → **Connect Wallet** (Privy modal) → see your live USDC balance.
-- **Send USDC** card → move testnet USDC to any address.
+- **Send USDC** card → move devnet USDC to any Solana address.
 - **x402 Autonomous Purchase** → server agent pays a gated API by itself.
-- **Commerce Agent** → "Quote a payment of 2.50 USDC to 0x…".
+- **Commerce Agent** → "Quote a payment of 2.50 USDC to <a base58 address>".
 
 ## Switch to mainnet
-Set `NEXT_PUBLIC_CHAIN=base` in `.env.local`. Everything (USDC address, explorer, x402
-network) flips automatically. Use real funds carefully.
+Set `NEXT_PUBLIC_SOLANA_CLUSTER=mainnet-beta` in `.env.local`. Everything (USDC mint, explorer,
+x402 network) flips automatically. There's no runtime chain-switching — Solana wallets have no
+"switch chain" action, so exactly one cluster is active per deployment. Use real funds
+carefully.

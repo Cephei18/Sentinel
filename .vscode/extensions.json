@@ -4,7 +4,6 @@
     "esbenp.prettier-vscode",
     "bradlc.vscode-tailwindcss",
     "usernamehw.errorlens",
-    "yoavbls.pretty-ts-errors",
-    "nomicfoundation.hardhat-solidity"
+    "yoavbls.pretty-ts-errors"
   ]
 }

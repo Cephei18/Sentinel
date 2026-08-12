@@ -20,8 +20,10 @@ earned autonomy.**
    mature agent governance, 35% couldn't immediately stop a rogue agent
    (Deloitte); most orgs can monitor agents but **cannot stop them** (Kiteworks).
    Gartner predicts >40% of agentic projects die by 2027, citing risk controls.
-3. **The rails just standardized without a control plane**: x402 under the
-   Linux Foundation, Google AP2 at FIDO, Visa/Mastercard tokenized agent
+3. **The rails just standardized without a control plane**: x402 now sits
+   under its own Foundation (Linux Foundation umbrella) with Solana Foundation
+   as a premier member alongside Circle, Ripple, Stellar, Visa, Google, and
+   Stripe; Google AP2 is at FIDO; Visa/Mastercard are shipping tokenized agent
    consent — value moves and delegation gets proven, but **no rail provides
    persistent budgets, category scope, behavioral trust, or graduated
    autonomy across a workforce.** That layer is unowned.
@@ -42,15 +44,17 @@ pivot.
 
 ### Who is the first customer?
 ⚠ **Agent-native startups already spending money through agents** — teams
-building on x402/CDP/Privy on Base, agent-marketplace and agent-employee
+building on x402/Privy on Solana, agent-marketplace and agent-employee
 companies, and Claude-/GPT-agent shops whose token+API spend is exploding
 (Ramp: 13× growth, budgets blown in months). They feel the pain weekly, buy
-bottom-up, and tolerate crypto rails. Enterprises standardizing on Entra/Okta
-come later, via the fiat/virtual-card rail abstraction — do not lead with them.
+bottom-up, and tolerate crypto rails. Solana carries the majority of x402
+volume today (~65%), so this is where the agent-payment activity already is,
+not a bet on it arriving. Enterprises standardizing on Entra/Okta come later,
+via the fiat/virtual-card rail abstraction — do not lead with them.
 
 ### What is the smallest valuable wedge?
 Scoped mandates + pre-action blocking + audit log for **one rail (x402/USDC on
-Base)**, with Privy signing-time policies as the hard backstop. Deliberately
+Solana)**, with Privy signing-time policies as the hard backstop. Deliberately
 small: it's the part nobody else productizes end-to-end, and every piece of it
 already exists in this repo as a demo.
 
@@ -75,14 +79,15 @@ sits at the decision point that captures both *intent* (attempts, blocks) and
 2. **System-of-record gravity**: once Sentinel's log is a company's audit
    evidence (SOC2/insurance), ripping it out is painful.
 3. **Ecosystem position**: the neutral trust layer that rails (x402, AP2),
-   wallets (Privy, CDP), insurers (AIUC), and marketplaces route through —
-   we don't compete with any of them.
-4. *Not* a moat: budget caps (Coinbase ships them), explainable scoring
-   mechanics (replicable). Speed + corpus + placement are the moat.
+   wallets (Privy and other Solana wallet infra), insurers (AIUC), and
+   marketplaces route through — we don't compete with any of them.
+4. *Not* a moat: budget caps (wallet and facilitator infra ships them),
+   explainable scoring mechanics (replicable). Speed + corpus + placement are
+   the moat.
 
 ### How does today's MVP evolve into the platform?
 `ROADMAP.md` sequences it: M1 harden foundations → M2 real control plane
-(server enforcement, Postgres event store, Privy backstop, x402 V2) → M3
+(server enforcement, Postgres event store, Privy server-wallet backstop) → M3
 tenancy + dashboard → M4 SDK/API as the product → M5 trust engine v2 →
 M6 audit/compliance surface → M7 policy engine beyond spend → M8 multi-rail →
 M9 portable reputation + marketplace. The engine and event-sourced shape never
@@ -100,9 +105,9 @@ and compliance suites that only document.*
 
 | Risk | Stance |
 |---|---|
-| **Coinbase absorbs the wedge** (native caps/KYT) | Sit above wallets, not beside them: integrate CDP *and* Privy; differentiate on trust, tiers, cross-rail audit. Caps are a feature; governance is a product. |
+| **Wallet/facilitator infra absorbs the wedge** (native caps/KYT) | Sit above wallets and facilitators, not beside them: integrate Privy *and* the x402-solana facilitator layer (PayAI); differentiate on trust, tiers, cross-rail audit. Caps are a feature; governance is a product. Solana Foundation's premier membership in the new x402 Foundation (alongside Circle, Ripple, Stellar, Visa, Google, Stripe) signals the rail is consolidating around standards, not around any one wallet vendor's caps. |
 | **Catena's regulatory moat** | Don't compete on regulation. Developer-first, self-serve, rail-agnostic; partner with regulated custody when enterprises demand it. |
-| **x402 volume slump** (−92% from speculative peak) | Multi-rail abstraction by M8 (AP2 mandates, virtual cards). x402 is the beachhead, not the bet. |
+| **x402 volume normalizing off its speculative peak** | Solana already carries ~65% of all x402 transaction volume, so being chain-first here is a bet on where the activity already concentrates, not a speculative one. Still: multi-rail abstraction by M8 (AP2 mandates, virtual cards) so x402 remains the beachhead, not the whole bet. |
 | **"Sentinel" name collision** (Microsoft Sentinel, SentinelOne, Sentinel SCA…) | Rename before public launch. Track candidates in `memory/project-memory.md`. |
 | **Score liability & gaming** | Scores advise and gate *within customer-set policy*; humans own overrides. Adversarial design review is part of Trust v2 (see `TRUST_MODEL.md`). |
 | **Enterprise procurement mismatch** (crypto rails read exotic) | Lead crypto-native; keep the ledger/policy layer rail-neutral so the fiat story is an adapter, not a rewrite. |

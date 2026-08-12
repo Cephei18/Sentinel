@@ -10,7 +10,7 @@
 # Sentinel
 ### The operating system for AI-native companies.
 
-<small>Base · Privy · x402 · USDC</small>
+<small>Solana · Privy · x402 · USDC</small>
 
 *(Open the live `/graph` behind this. Let the workforce move.)*
 
@@ -56,7 +56,7 @@ Today: you hand an agent a key and hope.
 # Guardrails are real. Trust is earned.
 
 1. Pause a worker → it tries to pay → **blocked.** Reliability dips.
-2. Resume → **real x402 USDC settlement on Base.** Trust rises — live.
+2. Resume → **real x402 USDC settlement on Solana.** Trust rises — live.
 
 *Every change explainable: `Trust +3 · Successful x402 settlement`.*
 

@@ -48,12 +48,14 @@
 
 14. **Next.js 16** — conventions differ from older training data; consult
     `node_modules/next/dist/docs/` before framework-level changes (AGENTS.md).
-15. **viem pinned 2.52.2** via pnpm override — duplicate-viem type breakage;
-    upgrade deliberately, all-at-once, with typecheck proof.
+15. **No dependency-version pin currently required.** The Base-era `viem`
+    pnpm override is gone (viem/wagmi removed entirely on the Solana
+    migration); `@solana/web3.js`/`@solana/kit` haven't needed one. Revisit if
+    duplicate-package type breakage reappears.
 16. **pnpm** is the package manager (lockfile, vercel.json, docs all assume it).
-17. **Wallet-free demo mode must keep working** (providers gate on Privy id) —
-    it is the sales demo and the sandbox — until a deliberate decision retires
-    it.
+17. **Wallet-free demo mode must keep working** (Privy providers, reconfigured
+    for Solana, gate on Privy id) — it is the sales demo and the sandbox —
+    until a deliberate decision retires it.
 
 ## Business constraints (from research, revisit quarterly)
 

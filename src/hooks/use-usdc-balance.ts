@@ -1,29 +1,27 @@
 "use client";
 
-import { useReadContract } from "wagmi";
-import { type Address } from "viem";
-import { ERC20_ABI } from "@/lib/constants";
-import { usdcAddress, formatUsdc } from "@/lib/usdc";
-import { activeChainId } from "@/lib/chains";
+import { useQuery } from "@tanstack/react-query";
+import { PublicKey } from "@solana/web3.js";
+import { getUsdcBalance, formatUsdc } from "@/lib/usdc";
 
 /**
- * Live USDC balance for an address (defaults to refetch every 10s).
+ * Live USDC balance for a wallet address (refetches every 10s).
  * Returns both the raw bigint and a formatted human string.
+ *
+ * There's no wagmi-style read-hook on Solana, so this polls
+ * `getUsdcBalance` (the same ATA-lookup helper the server uses) directly via
+ * react-query — one implementation shared by client and server, rather than
+ * the old split between a wagmi hook and a viem helper.
  */
-export function useUsdcBalance(address?: Address) {
-  const query = useReadContract({
-    address: usdcAddress(),
-    abi: ERC20_ABI,
-    functionName: "balanceOf",
-    args: address ? [address] : undefined,
-    chainId: activeChainId,
-    query: {
-      enabled: Boolean(address),
-      refetchInterval: 10_000,
-    },
+export function useUsdcBalance(address?: string) {
+  const query = useQuery({
+    queryKey: ["usdc-balance", address],
+    queryFn: () => getUsdcBalance(new PublicKey(address as string)),
+    enabled: Boolean(address),
+    refetchInterval: 10_000,
   });
 
-  const raw = (query.data as bigint | undefined) ?? 0n;
+  const raw = query.data?.raw ?? 0n;
 
   return {
     raw,

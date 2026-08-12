@@ -14,13 +14,13 @@
 ## Deploy checklist (demo deployment)
 
 1. `pnpm preflight && pnpm test && pnpm build` locally — all green.
-2. Set env in Vercel: `NEXT_PUBLIC_PRIVY_APP_ID`, `NEXT_PUBLIC_CHAIN=base-sepolia`,
-   one LLM key, and — only if you want live settlement —
-   `AGENT_PRIVATE_KEY` (freshly minted, minimally funded, **testnet**) +
-   `X402_PAY_TO_ADDRESS`. Set `NEXT_PUBLIC_APP_URL` to the deployed URL
-   (the buyer route fetches itself through it).
-3. Dedicated RPCs (`BASE_SEPOLIA_RPC_URL`) — public RPC rate limits are the
-   #1 cause of flaky demos.
+2. Set env in Vercel: `NEXT_PUBLIC_PRIVY_APP_ID`,
+   `NEXT_PUBLIC_SOLANA_CLUSTER=devnet`, one LLM key, and — only if you want
+   live settlement — `AGENT_PRIVATE_KEY` (freshly minted, minimally funded,
+   **devnet**) + `X402_PAY_TO_ADDRESS`. Set `NEXT_PUBLIC_APP_URL` to the
+   deployed URL (the buyer route fetches itself through it).
+3. Dedicated RPCs (`SOLANA_RPC_URL`/`NEXT_PUBLIC_SOLANA_RPC_URL`) — public RPC
+   rate limits are the #1 cause of flaky demos.
 4. Verify `/api/health` shows the expected provider booleans.
 5. Demo-mode check: open in a private window with Privy id *removed* from a
    preview deployment if you need the wallet-free variant.
@@ -36,12 +36,13 @@
 
 ## Environments (target, M2+)
 
-| Env | Chain | Data | Purpose |
+| Env | Cluster | Data | Purpose |
 |---|---|---|---|
-| preview (per-PR) | Base Sepolia | ephemeral DB branch | review |
-| staging | Base Sepolia | persistent staging DB | integration + demo |
-| production | Base mainnet | production DB, Privy server wallets | customers |
+| preview (per-PR) | devnet | ephemeral DB branch | review |
+| staging | devnet | persistent staging DB | integration + demo |
+| production | mainnet-beta | production DB, Privy server wallets | customers |
 
 M2 adds: Postgres (Neon/Supabase-class, branchable), migrations in CI,
 secrets via platform store only, CSP headers, structured logs. M6 adds:
-log-integrity verification job + EAS anchoring cadence.
+log-integrity verification job + anchoring cadence (mechanism TBD — see
+`docs/OBSERVABILITY.md` open question).

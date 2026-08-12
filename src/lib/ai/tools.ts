@@ -1,10 +1,9 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { type Address, type Hash } from "viem";
-import { getUsdcBalance, parseUsdc } from "../usdc";
-import { buildUsdcTransfer } from "../usdc";
+import { PublicKey } from "@solana/web3.js";
+import { getUsdcBalance, parseUsdc, usdcMint } from "../usdc";
 import { explorerTx, waitForTx } from "../tx";
-import { chainLabel } from "../chains";
+import { clusterLabel } from "../solana";
 
 /**
  * Wallet-aware AI tools (Vercel AI SDK).
@@ -15,20 +14,20 @@ import { chainLabel } from "../chains";
  */
 export const commerceTools = {
   getUsdcBalance: tool({
-    description: `Get the USDC balance of an address on ${chainLabel}.`,
+    description: `Get the USDC balance of a wallet on ${clusterLabel}.`,
     inputSchema: z.object({
-      address: z.string().describe("0x-prefixed wallet address to check"),
+      address: z.string().describe("base58 Solana wallet address to check"),
     }),
     execute: async ({ address }) => {
-      const { formatted } = await getUsdcBalance(address as Address);
-      return { address, balanceUsdc: formatted, chain: chainLabel };
+      const { formatted } = await getUsdcBalance(new PublicKey(address));
+      return { address, balanceUsdc: formatted, chain: clusterLabel };
     },
   }),
 
   quotePayment: tool({
     description: "Quote a USDC payment: validate amount + recipient and return a human summary.",
     inputSchema: z.object({
-      to: z.string().describe("recipient 0x address"),
+      to: z.string().describe("recipient base58 Solana address"),
       amount: z.string().describe("amount in USDC, human units e.g. '2.50'"),
       memo: z.string().optional(),
     }),
@@ -39,43 +38,41 @@ export const commerceTools = {
         amount,
         amountBaseUnits: baseUnits,
         token: "USDC",
-        chain: chainLabel,
+        chain: clusterLabel,
         memo: memo ?? null,
-        summary: `Pay ${amount} USDC to ${to} on ${chainLabel}.`,
+        summary: `Pay ${amount} USDC to ${to} on ${clusterLabel}.`,
       };
     },
   }),
 
   prepareUsdcTransfer: tool({
     description:
-      "Prepare an UNSIGNED USDC transfer for the user to approve in their wallet. Returns calldata; does NOT move funds.",
+      "Describe an UNSIGNED USDC transfer intent for the user to approve in their wallet. " +
+      "Returns the transfer details, not a ready instruction — building the actual SPL " +
+      "transfer needs the connected wallet's own address as the payer, which this " +
+      "server-side tool doesn't have. Does NOT move funds.",
     inputSchema: z.object({
-      to: z.string().describe("recipient 0x address"),
+      to: z.string().describe("recipient base58 Solana address"),
       amount: z.string().describe("amount in USDC, human units"),
     }),
     execute: async ({ to, amount }) => {
-      const call = buildUsdcTransfer(to as Address, amount);
       return {
         requiresApproval: true,
-        call: { to: call.to, data: call.data, value: "0" },
+        intent: { to, amount, token: "USDC", mint: usdcMint().toBase58() },
         humanReadable: `Transfer ${amount} USDC to ${to}`,
       };
     },
   }),
 
   getTransactionStatus: tool({
-    description: "Look up the status of a transaction by hash and return an explorer link.",
-    inputSchema: z.object({ hash: z.string().describe("0x transaction hash") }),
-    execute: async ({ hash }) => {
+    description: "Look up the status of a transaction by signature and return an explorer link.",
+    inputSchema: z.object({ signature: z.string().describe("base58 transaction signature") }),
+    execute: async ({ signature }) => {
       try {
-        const res = await waitForTx(hash as Hash);
-        return {
-          confirmed: res.success,
-          blockNumber: res.blockNumber.toString(),
-          explorer: res.explorer,
-        };
+        const res = await waitForTx(signature);
+        return { confirmed: res.success, explorer: res.explorer };
       } catch {
-        return { confirmed: false, explorer: explorerTx(hash as Hash), note: "pending or not found" };
+        return { confirmed: false, explorer: explorerTx(signature), note: "pending or not found" };
       }
     },
   }),

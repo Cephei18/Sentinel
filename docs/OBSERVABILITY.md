@@ -29,7 +29,9 @@
    (authorization, ledger projection, policy version) with the verdict —
    replayable by construction. PII redacted before write.
 4. **The log's integrity is monitored** like uptime: hash-chain verification
-   job, alert on divergence; later Merkle roots anchored via EAS on Base.
+   job, alert on divergence; later Merkle roots anchored on-chain (Base-era
+   plan was EAS — there's no direct Solana equivalent yet; anchoring mechanism
+   is an **open question** to resolve before M6, not a settled design).
 
 ## Rollout (matches ROADMAP)
 

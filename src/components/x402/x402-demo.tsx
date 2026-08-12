@@ -70,7 +70,7 @@ export function X402Demo() {
                   <Badge variant="success">Paid &amp; unlocked</Badge>
                   {result.payment?.transaction && (
                     <a
-                      href={explorerTx(result.payment.transaction as `0x${string}`)}
+                      href={explorerTx(result.payment.transaction)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-muted inline-flex items-center gap-1 text-xs hover:underline"

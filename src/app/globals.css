@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 /*
- * Design system — Base hackathon starter.
+ * Design system — Solana Hacker House build.
  * Tailwind v4: tokens declared in @theme become utilities
  * (e.g. --color-brand → bg-brand / text-brand / border-brand).
  */
 @theme {
-  --color-brand: #0052ff; /* Base brand blue */
-  --color-brand-foreground: #ffffff;
-  --color-brand-muted: #3b7bff;
+  --color-brand: #14f195; /* Solana green */
+  --color-brand-foreground: #04120c;
+  --color-brand-muted: #5cf7b8;
 
   --color-background: #0a0b0f;
   --color-surface: #12141c;
