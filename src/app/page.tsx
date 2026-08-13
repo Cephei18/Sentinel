@@ -2,149 +2,255 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, Activity, Gauge, ShieldCheck } from "lucide-react";
-import { Navbar } from "@/components/layout/navbar";
+import { ArrowRight, Check, Mail, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { clusterLabel } from "@/lib/solana";
+import { TrustGraph } from "@/components/agents/trust-graph";
 import { BRAND } from "@/lib/brand";
 
-const PILLARS = [
-  {
-    icon: ShieldCheck,
-    title: "Hire & authorize",
-    body: "Bring on AI workers with a scoped budget, a per-transaction ceiling, an expiry, and the categories they may spend on. Pause or revoke in one click.",
-  },
-  {
-    icon: Activity,
-    title: "Govern spend",
-    body: "Every autonomous payment is a first-class event — settled on-chain via x402, streamed to a live operations log with verifiable proof.",
-  },
-  {
-    icon: Gauge,
-    title: "Allocate by trust",
-    body: "Behaviour becomes an economic trust score that governs autonomy and capital — reliable workers earn larger budgets and the right to hire others.",
-  },
+const CONTACT_EMAIL = "gopikachauhan1819@gmail.com";
+const MAILTO_HREF = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+  "Interested in Sentinel",
+)}&body=${encodeURIComponent(
+  "Hi,\n\nTell us a bit about the agents you're running and what you'd want governed.\n\n",
+)}`;
+
+const NOT_US = [
+  "A wallet gives an agent a signing key. It has no idea what that agent is allowed to spend.",
+  "An observability tool tells you what already happened. It cannot stop a payment before it moves.",
 ];
 
-const STEPS = [
-  "Hire AI workers with scoped budgets",
-  "They transact and collaborate via x402",
-  "Trust decides who earns more autonomy",
+const LEGEND = [
+  { className: "bg-success", label: "Autonomous" },
+  { className: "bg-brand-muted", label: "Trusted" },
+  { className: "bg-warning", label: "Supervised" },
+  { className: "bg-danger", label: "At risk" },
 ];
 
 const fade = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 14 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+    transition: { delay: i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
   }),
 };
+
+function LandingHeader() {
+  return (
+    <header className="border-border/60 bg-background/70 sticky top-0 z-40 border-b backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2 font-semibold">
+          <span className="bg-brand text-brand-foreground grid size-7 place-items-center rounded-lg text-sm">
+            {BRAND.glyph}
+          </span>
+          {BRAND.name}
+        </Link>
+        <nav className="flex items-center gap-6">
+          <a href="#demo" className="text-muted hover:text-foreground hidden text-sm sm:block">
+            How it works
+          </a>
+          <a href="#contact" className="text-muted hover:text-foreground hidden text-sm sm:block">
+            Contact
+          </a>
+          <a href="#contact">
+            <Button size="sm">Get in touch</Button>
+          </a>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="mx-auto max-w-5xl px-4 pt-20 pb-16 sm:pt-28 sm:pb-24">
+      <motion.div custom={0} variants={fade} initial="hidden" animate="show">
+        <Badge variant="brand" className="mb-6">
+          Startup in the making
+        </Badge>
+      </motion.div>
+      <motion.h1
+        custom={1}
+        variants={fade}
+        initial="hidden"
+        animate="show"
+        className="max-w-3xl text-4xl font-bold tracking-tight text-balance sm:text-6xl"
+      >
+        Governance infrastructure for AI agents that spend money.
+      </motion.h1>
+      <motion.p
+        custom={2}
+        variants={fade}
+        initial="hidden"
+        animate="show"
+        className="text-muted mt-5 max-w-xl text-balance sm:text-lg"
+      >
+        Give every agent a scoped budget, enforce it before a payment moves, and let a trust score
+        decide how much autonomy it earns. Built for teams already running agents that spend real
+        money, settled in USDC on Solana.
+      </motion.p>
+      <motion.div
+        custom={3}
+        variants={fade}
+        initial="hidden"
+        animate="show"
+        className="mt-8 flex flex-wrap items-center gap-3"
+      >
+        <a href="#contact">
+          <Button size="lg">
+            Get in touch <ArrowRight className="size-4" />
+          </Button>
+        </a>
+        <a href="#demo">
+          <Button size="lg" variant="outline">
+            See how it works
+          </Button>
+        </a>
+      </motion.div>
+      <motion.p
+        custom={4}
+        variants={fade}
+        initial="hidden"
+        animate="show"
+        className="text-muted mt-10 max-w-lg text-sm"
+      >
+        74% of companies plan to run agentic AI. Only 21% have any governance in place for it.
+        <span className="text-muted/70"> (Deloitte)</span>
+      </motion.p>
+    </section>
+  );
+}
+
+function WhyUs() {
+  return (
+    <section className="border-border/60 border-t px-4 py-16 sm:py-20">
+      <div className="mx-auto max-w-3xl">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          Today, the plan is: hand an agent a key, and hope.
+        </h2>
+        <div className="mt-8 space-y-4">
+          {NOT_US.map((line) => (
+            <div key={line} className="flex items-start gap-3">
+              <X className="text-danger mt-0.5 size-4 shrink-0" />
+              <p className="text-muted">{line}</p>
+            </div>
+          ))}
+          <div className="flex items-start gap-3">
+            <Check className="text-brand mt-0.5 size-4 shrink-0" />
+            <p className="text-foreground">
+              Sentinel checks every payment against a scoped budget before it moves, and turns
+              behavior into an explainable trust score that decides what an agent earns next.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function DemoPreview() {
+  return (
+    <section id="demo" className="border-border/60 border-t px-4 py-16 sm:py-20">
+      <div className="mx-auto max-w-4xl">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          This is your AI workforce, live.
+        </h2>
+        <p className="text-muted mt-3 max-w-xl">
+          A real, working view of how Sentinel governs a team of AI agents: trust scores, spend, and
+          the autonomous payments moving between them.
+        </p>
+
+        <div className="border-border bg-surface mt-8 overflow-hidden rounded-2xl border shadow-2xl">
+          <div className="border-border/60 bg-surface-2 flex h-10 items-center gap-2 border-b px-4">
+            <span className="bg-danger/60 size-2.5 rounded-full" />
+            <span className="bg-warning/60 size-2.5 rounded-full" />
+            <span className="bg-brand/60 size-2.5 rounded-full" />
+            <span className="text-muted ml-2 text-xs font-medium">Organization graph</span>
+          </div>
+          <div className="p-4 sm:p-6">
+            <TrustGraph />
+            <div className="border-border/60 mt-2 flex flex-wrap gap-x-5 gap-y-2 border-t pt-4">
+              {LEGEND.map((l) => (
+                <span key={l.label} className="text-muted flex items-center gap-2 text-xs">
+                  <span className={`size-2.5 rounded-full ${l.className}`} />
+                  {l.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/graph">
+            <Button size="lg">
+              Explore the live graph <ArrowRight className="size-4" />
+            </Button>
+          </Link>
+          <Link href="/dashboard">
+            <Button size="lg" variant="outline">
+              Open the dashboard
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Contact() {
+  return (
+    <section id="contact" className="border-border/60 border-t px-4 py-16 sm:py-24">
+      <div className="mx-auto max-w-xl text-center">
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          Want to try this with your own agents?
+        </h2>
+        <p className="text-muted mt-3">
+          We&apos;re onboarding a small number of early teams by hand. Tell us what your agents do
+          and we&apos;ll get back to you personally.
+        </p>
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <a href={MAILTO_HREF}>
+            <Button size="lg">
+              <Mail className="size-4" /> Email us
+            </Button>
+          </a>
+          <a href={MAILTO_HREF} className="text-muted hover:text-foreground font-mono text-sm">
+            {CONTACT_EMAIL}
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-border/60 border-t px-4 py-8">
+      <div className="text-muted mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 text-sm sm:flex-row">
+        <div className="flex items-center gap-2">
+          <Badge variant="neutral">Startup in the making</Badge>
+          <span>{BRAND.name}. Governance infrastructure for autonomous AI agents.</span>
+        </div>
+        <Link href="/graph" className="hover:text-foreground">
+          Open the live graph
+        </Link>
+      </div>
+    </footer>
+  );
+}
 
 export default function Home() {
   return (
     <div className="flex min-h-full flex-col">
-      <Navbar />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4">
-        {/* Hero */}
-        <section className="flex flex-col items-center py-20 text-center sm:py-28">
-          <motion.div custom={0} variants={fade} initial="hidden" animate="show">
-            <Badge variant="brand" className="mb-5">
-              Solana · Privy · x402 — live on {clusterLabel}
-            </Badge>
-          </motion.div>
-          <motion.h1
-            custom={1}
-            variants={fade}
-            initial="hidden"
-            animate="show"
-            className="max-w-3xl text-4xl font-bold tracking-tight text-balance sm:text-6xl"
-          >
-            The operating system for AI-native companies.
-          </motion.h1>
-          <motion.p
-            custom={2}
-            variants={fade}
-            initial="hidden"
-            animate="show"
-            className="text-muted mt-5 max-w-xl text-balance sm:text-lg"
-          >
-            Tomorrow&apos;s companies run on fleets of autonomous AI workers that spend, hire, and
-            coordinate on their own. {BRAND.name} is how a founder allocates budgets, governs that
-            spending, and lets trust decide which workers earn more autonomy.
-          </motion.p>
-          <motion.div
-            custom={3}
-            variants={fade}
-            initial="hidden"
-            animate="show"
-            className="mt-8 flex flex-wrap items-center justify-center gap-3"
-          >
-            <Link href="/graph">
-              <Button size="lg">
-                Enter the network <ArrowRight className="size-4" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button size="lg" variant="outline">
-                Open control room
-              </Button>
-            </Link>
-          </motion.div>
-
-          {/* How it works — one line narrative */}
-          <motion.div
-            custom={4}
-            variants={fade}
-            initial="hidden"
-            animate="show"
-            className="text-muted mt-12 flex flex-col items-center gap-2 text-sm sm:flex-row sm:gap-3"
-          >
-            {STEPS.map((step, i) => (
-              <span key={step} className="flex items-center gap-2 sm:gap-3">
-                <span className="flex items-center gap-2">
-                  <span className="border-border bg-surface-2 text-foreground grid size-5 place-items-center rounded-full border text-[11px] font-medium">
-                    {i + 1}
-                  </span>
-                  {step}
-                </span>
-                {i < STEPS.length - 1 && (
-                  <ArrowRight className="text-border hidden size-3.5 sm:block" />
-                )}
-              </span>
-            ))}
-          </motion.div>
-        </section>
-
-        {/* Pillars */}
-        <section className="grid gap-4 pb-24 sm:grid-cols-3">
-          {PILLARS.map((p, i) => (
-            <motion.div
-              key={p.title}
-              custom={i + 5}
-              variants={fade}
-              initial="hidden"
-              animate="show"
-            >
-              <Card className="h-full">
-                <CardContent className="space-y-3 p-6">
-                  <div className="bg-brand/15 text-brand-muted grid size-10 place-items-center rounded-xl">
-                    <p.icon className="size-5" />
-                  </div>
-                  <h3 className="font-semibold">{p.title}</h3>
-                  <p className="text-muted text-sm">{p.body}</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </section>
+      <LandingHeader />
+      <main className="flex-1">
+        <Hero />
+        <WhyUs />
+        <DemoPreview />
+        <Contact />
       </main>
-
-      <footer className="border-border/60 text-muted border-t py-6 text-center text-sm">
-        {BRAND.name} · Built for the Solana Hacker House · {clusterLabel}
-      </footer>
+      <Footer />
     </div>
   );
 }

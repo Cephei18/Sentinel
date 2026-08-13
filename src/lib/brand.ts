@@ -9,5 +9,5 @@ export const BRAND = {
   tagline: "The operating system for AI-native companies.",
   // One-liner for hero / meta descriptions.
   description:
-    "Hire autonomous AI workers, allocate budgets, govern their spending, and let trust decide who earns more autonomy — the financial control plane for an AI-native workforce.",
+    "Hire autonomous AI workers, allocate budgets, govern their spending, and let trust decide who earns more autonomy. The financial control plane for an AI-native workforce.",
 } as const;

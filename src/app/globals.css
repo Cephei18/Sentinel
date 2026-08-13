@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Design system — Solana Hacker House build.
+ * Design system for Sentinel.
  * Tailwind v4: tokens declared in @theme become utilities
- * (e.g. --color-brand → bg-brand / text-brand / border-brand).
+ * (e.g. --color-brand becomes bg-brand / text-brand / border-brand).
  */
 @theme {
   --color-brand: #14f195; /* Solana green */
@@ -38,11 +38,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle ambient gradient for the dark demo aesthetic. */
+/* Single soft ambient glow, brand colored, kept subtle on purpose. */
 .bg-grid {
-  background-image:
-    radial-gradient(60rem 60rem at 70% -10%, rgba(0, 82, 255, 0.18), transparent 60%),
-    radial-gradient(40rem 40rem at 0% 100%, rgba(59, 123, 255, 0.1), transparent 55%);
+  background-image: radial-gradient(
+    50rem 50rem at 80% -10%,
+    rgba(20, 241, 149, 0.08),
+    transparent 60%
+  );
 }
 
 @keyframes shimmer {
