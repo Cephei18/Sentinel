@@ -8,7 +8,7 @@ export function Navbar() {
     <header className="border-border/60 bg-background/70 sticky top-0 z-40 border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="bg-brand grid size-7 place-items-center rounded-lg text-sm text-white">
+          <span className="bg-brand text-brand-foreground grid size-7 place-items-center rounded-full text-sm">
             {BRAND.glyph}
           </span>
           {BRAND.name}

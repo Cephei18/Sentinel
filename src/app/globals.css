@@ -1,30 +1,37 @@
 @import "tailwindcss";
 
 /*
- * Design system for Sentinel.
+ * Design system for Sentinel — black + burgundy.
  * Tailwind v4: tokens declared in @theme become utilities
  * (e.g. --color-brand becomes bg-brand / text-brand / border-brand).
+ *
+ * `brand` is the solid-fill accent (buttons, glyphs) — always paired with
+ * brand-foreground text on top of it, not used standalone as small text.
+ * `brand-muted` / `success` / `warning` / `danger` are the readable-as-text
+ * shades, all drawn from the same two burgundy/champagne ramps so the app
+ * reads as one accent family rather than mixed hues.
  */
 @theme {
-  --color-brand: #14f195; /* Solana green */
-  --color-brand-foreground: #04120c;
-  --color-brand-muted: #5cf7b8;
+  --color-brand: #a62b4a; /* burgundy */
+  --color-brand-foreground: #ffffff;
+  --color-brand-muted: #b8964a; /* champagne */
 
-  --color-background: #0a0b0f;
-  --color-surface: #12141c;
-  --color-surface-2: #1a1d27;
-  --color-border: #262a37;
-  --color-foreground: #f5f6fa;
-  --color-muted: #9aa3b2;
+  --color-background: #0b0a0d;
+  --color-surface: #16131a;
+  --color-surface-2: #201c26;
+  --color-border: rgba(245, 241, 244, 0.13);
+  --color-foreground: #f5f1f4;
+  --color-muted: rgba(245, 241, 244, 0.58);
 
-  --color-success: #16c784;
-  --color-warning: #f5a623;
-  --color-danger: #ff5470;
+  --color-success: #cdb079; /* champagne, light */
+  --color-warning: #cf6b81; /* burgundy, light */
+  --color-danger: #e29daa; /* burgundy, lightest */
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-heading-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-heading-mono), ui-monospace, monospace;
 
-  --radius: 0.75rem;
+  --radius: 10px;
+  --radius-lg: 14px;
 }
 
 html {
@@ -35,14 +42,27 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Single soft ambient glow, brand colored, kept subtle on purpose. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 640;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+/* Single soft ambient glow, accent colored, kept subtle on purpose. */
 .bg-grid {
   background-image: radial-gradient(
     50rem 50rem at 80% -10%,
-    rgba(20, 241, 149, 0.08),
+    rgba(166, 43, 74, 0.14),
     transparent 60%
   );
 }
@@ -59,4 +79,23 @@ body {
   transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
   animation: shimmer 1.5s infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }

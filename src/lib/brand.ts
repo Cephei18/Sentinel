@@ -4,8 +4,8 @@
  */
 export const BRAND = {
   name: "Sentinel",
-  // Used in the wordmark glyph (the square logo tile).
-  glyph: "S",
+  // Used in the wordmark glyph (the round logo tile).
+  glyph: "◈",
   tagline: "The operating system for AI-native companies.",
   // One-liner for hero / meta descriptions.
   description:

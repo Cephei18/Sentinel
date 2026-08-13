@@ -50,7 +50,7 @@ export function Dialog({
             role="dialog"
             aria-modal="true"
             className={cn(
-              "border-border bg-surface relative z-10 w-full max-w-md rounded-[var(--radius)] border shadow-2xl",
+              "border-border bg-surface relative z-10 w-full max-w-md rounded-lg border shadow-2xl",
               className,
             )}
             initial={{ opacity: 0, scale: 0.96, y: 8 }}

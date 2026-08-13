@@ -131,16 +131,17 @@ export function CreateAgentDialog({ open, onClose }: { open: boolean; onClose: (
         </div>
 
         <Field label="Authorization expires">
-          <div className="flex gap-2">
-            {EXPIRY_OPTIONS.map((o) => (
+          <div className="border-border flex overflow-hidden rounded-[var(--radius)] border">
+            {EXPIRY_OPTIONS.map((o, i) => (
               <button
                 key={o.days}
                 onClick={() => setExpiryDays(o.days)}
                 className={cn(
-                  "flex-1 rounded-[var(--radius)] border px-3 py-2 text-sm transition-colors",
+                  "flex-1 px-3 py-2 text-sm transition-colors",
+                  i > 0 && "border-border border-l",
                   expiryDays === o.days
-                    ? "border-brand bg-brand/10 text-foreground"
-                    : "border-border bg-surface-2 text-muted hover:text-foreground",
+                    ? "bg-brand text-brand-foreground"
+                    : "text-muted hover:bg-foreground/8",
                 )}
               >
                 {o.label}
@@ -159,10 +160,10 @@ export function CreateAgentDialog({ open, onClose }: { open: boolean; onClose: (
                   onClick={() => toggle(c.id)}
                   title={c.hint}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                    "rounded-full border px-3.5 py-1.5 text-sm transition-transform hover:-translate-y-0.5",
                     on
-                      ? "border-brand bg-brand/15 text-brand-muted"
-                      : "border-border bg-surface-2 text-muted hover:text-foreground",
+                      ? "border-brand bg-brand text-brand-foreground"
+                      : "border-border text-muted hover:text-foreground",
                   )}
                 >
                   {c.label}
