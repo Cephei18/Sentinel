@@ -65,6 +65,9 @@ const serverSchema = z.object({
     .optional(),
   X402_FACILITATOR_URL: z.string().url().optional(),
   SOLANA_RPC_URL: z.string().url().optional(),
+  // Neon connection string for the hosted API (/api/v1/*). Not needed to run
+  // the demo app itself — only the SDK-facing routes and db scripts use it.
+  DATABASE_URL: z.string().url().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

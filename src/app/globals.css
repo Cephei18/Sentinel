@@ -99,3 +99,45 @@ h6 {
     transform: translateX(-50%);
   }
 }
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(var(--drift-x, 10px), var(--drift-y, -18px));
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.16;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.05;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom pointer (landing page only) — hide the native cursor while the
+   PointerField component is mounted, restored automatically on unmount. */
+.cursor-none,
+.cursor-none * {
+  cursor: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-none,
+  .cursor-none * {
+    cursor: auto !important;
+  }
+}

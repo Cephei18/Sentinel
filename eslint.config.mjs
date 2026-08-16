@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Build output of workspace packages (e.g. packages/sdk/dist).
+    "packages/*/dist/**",
   ]),
 ]);
 

@@ -25,18 +25,6 @@ export default function DashboardPage() {
         </div>
 
         <ControlStats />
-
-        {/* Workforce + intelligence */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <AgentRoster />
-          </div>
-          <div className="space-y-6">
-            <WorkforceRankings />
-            <WalletStatus />
-          </div>
-        </div>
-
         {/* Operations log + live rails */}
         <div className="grid gap-6 lg:grid-cols-3">
           <GlobalActivity limit={8} />

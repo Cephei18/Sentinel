@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrustGraph } from "@/components/agents/trust-graph";
 import { TrustScoreRing } from "@/components/agents/trust-score-ring";
+import { PointerField, Spotlight } from "@/components/landing/pointer-field";
+import { ScrollProgress } from "@/components/landing/scroll-progress";
+import { TiltCard } from "@/components/landing/tilt-card";
+import { Magnetic } from "@/components/landing/magnetic";
 import { BRAND } from "@/lib/brand";
 
 const CONTACT_EMAIL = "gopikachauhan1819@gmail.com";
@@ -148,7 +152,10 @@ function LandingHeader() {
     <header className="border-border/60 bg-background/70 sticky top-0 z-40 border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4">
         <Link href="/" className="mr-8 flex items-center gap-2.5 font-semibold">
-          <span className="bg-brand text-brand-foreground grid size-7 place-items-center rounded-full text-sm">
+          <span
+            className="bg-brand text-brand-foreground grid size-7 place-items-center rounded-full text-sm"
+            style={{ animation: "breathe 5s ease-in-out infinite" }}
+          >
             {BRAND.glyph}
           </span>
           {BRAND.name}
@@ -156,30 +163,39 @@ function LandingHeader() {
         <nav className="flex items-center gap-1">
           <a
             href="#product"
+            data-cursor
             className="text-muted hover:bg-foreground/8 hover:text-foreground hidden rounded-full px-3.5 py-2 text-sm transition-colors sm:block"
           >
             Product
           </a>
           <a
             href="#trust-engine"
+            data-cursor
             className="text-muted hover:bg-foreground/8 hover:text-foreground hidden rounded-full px-3.5 py-2 text-sm transition-colors sm:block"
           >
             Trust engine
           </a>
           <a
             href="#how-it-works"
+            data-cursor
             className="text-muted hover:bg-foreground/8 hover:text-foreground hidden rounded-full px-3.5 py-2 text-sm transition-colors sm:block"
           >
             Docs
           </a>
         </nav>
         <div className="ml-auto flex items-center gap-4">
-          <Link href="/graph" className="text-brand-muted hidden text-sm font-medium sm:block">
+          <Link
+            href="/graph"
+            data-cursor
+            className="text-brand-muted hidden text-sm font-medium sm:block"
+          >
             Open the demo
           </Link>
-          <a href={mailtoHref()}>
-            <Button size="sm">Get in touch</Button>
-          </a>
+          <Magnetic>
+            <a href={mailtoHref()}>
+              <Button size="sm">Get in touch</Button>
+            </a>
+          </Magnetic>
         </div>
       </div>
     </header>
@@ -192,7 +208,7 @@ function GuardrailWidget() {
     <motion.div custom={4} variants={fade} initial="hidden" animate="show" className="relative">
       <div className="bg-brand/[0.16] absolute -top-8 -left-8 size-32 rounded-full" />
       <div className="border-border/70 absolute -right-9 -bottom-8 size-24 rounded-full border" />
-      <div className="bg-surface relative overflow-hidden rounded-lg p-6 shadow-2xl">
+      <TiltCard className="bg-surface relative overflow-hidden rounded-lg p-6 shadow-2xl">
         <div className="relative flex items-center justify-between gap-2">
           <span className="text-muted text-[11px] tracking-wider uppercase">
             Authorization check
@@ -246,15 +262,40 @@ function GuardrailWidget() {
             Trust −4
           </span>
         </motion.div>
-      </div>
+      </TiltCard>
     </motion.div>
   );
 }
 
 function Hero() {
   return (
-    <section id="product" className="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:pt-20">
-      <div className="grid items-center gap-14 lg:grid-cols-[1fr_440px]">
+    <section
+      id="product"
+      className="relative mx-auto max-w-6xl overflow-hidden px-4 pt-16 pb-20 sm:pt-20"
+    >
+      <span
+        aria-hidden
+        className="bg-brand/10 pointer-events-none absolute top-24 -left-20 size-72 rounded-full blur-3xl"
+        style={
+          {
+            "--drift-x": "24px",
+            "--drift-y": "-20px",
+            animation: "drift 12s ease-in-out infinite",
+          } as React.CSSProperties
+        }
+      />
+      <span
+        aria-hidden
+        className="bg-brand-muted/10 pointer-events-none absolute -right-15 bottom-0 size-64 rounded-full blur-3xl"
+        style={
+          {
+            "--drift-x": "-18px",
+            "--drift-y": "22px",
+            animation: "drift 15s ease-in-out infinite 1s",
+          } as React.CSSProperties
+        }
+      />
+      <div className="relative grid items-center gap-14 lg:grid-cols-[1fr_440px]">
         <div>
           <motion.div custom={0} variants={fade} initial="hidden" animate="show">
             <Badge variant="brand" className="mb-6">
@@ -287,16 +328,20 @@ function Hero() {
             animate="show"
             className="mt-9 flex flex-wrap items-center gap-3"
           >
-            <a href={mailtoHref()}>
-              <Button size="lg">
-                Get in touch <ArrowRight className="size-4" />
-              </Button>
-            </a>
-            <Link href="/graph">
-              <Button size="lg" variant="secondary">
-                Explore the demo
-              </Button>
-            </Link>
+            <Magnetic>
+              <a href={mailtoHref()}>
+                <Button size="lg">
+                  Get in touch <ArrowRight className="size-4" />
+                </Button>
+              </a>
+            </Magnetic>
+            <Magnetic>
+              <Link href="/graph">
+                <Button size="lg" variant="secondary">
+                  Explore the demo
+                </Button>
+              </Link>
+            </Magnetic>
           </motion.div>
         </div>
         <GuardrailWidget />
@@ -342,13 +387,17 @@ function ControlPlane() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="border-border bg-surface flex min-h-[232px] flex-col gap-4 rounded-lg border p-7 transition-transform hover:-translate-y-1"
           >
-            <span className="text-brand-muted font-mono text-[10px] tracking-[0.12em] uppercase">
-              {tile.kicker}
-            </span>
-            <div className="text-[22px] font-semibold">{tile.title}</div>
-            {tile.body}
+            <TiltCard
+              max={6}
+              className="border-border bg-surface flex min-h-[232px] flex-col gap-4 rounded-lg border p-7"
+            >
+              <span className="text-brand-muted font-mono text-[10px] tracking-[0.12em] uppercase">
+                {tile.kicker}
+              </span>
+              <div className="text-[22px] font-semibold">{tile.title}</div>
+              {tile.body}
+            </TiltCard>
           </motion.div>
         ))}
       </div>
@@ -461,8 +510,19 @@ function HowItWorks() {
 
 function CompanyInMotion() {
   return (
-    <section className="border-border/60 border-y bg-neutral-900/40 px-4 py-20 sm:py-24">
-      <div className="mx-auto max-w-6xl">
+    <section className="border-border/60 relative overflow-hidden border-y bg-neutral-900/40 px-4 py-20 sm:py-24">
+      <span
+        aria-hidden
+        className="bg-brand-muted/8 pointer-events-none absolute -top-16 right-1/4 size-80 rounded-full blur-3xl"
+        style={
+          {
+            "--drift-x": "-14px",
+            "--drift-y": "20px",
+            animation: "drift 14s ease-in-out infinite",
+          } as React.CSSProperties
+        }
+      />
+      <div className="relative mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-10">
           <div>
             <h2 className="max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
@@ -474,14 +534,18 @@ function CompanyInMotion() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Link href="/graph">
-              <Button>
-                Open the graph <ArrowRight className="size-4" />
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button variant="secondary">Operations</Button>
-            </Link>
+            <Magnetic>
+              <Link href="/graph">
+                <Button>
+                  Open the graph <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+            </Magnetic>
+            <Magnetic>
+              <Link href="/dashboard">
+                <Button variant="secondary">Operations</Button>
+              </Link>
+            </Magnetic>
           </div>
         </div>
 
@@ -529,9 +593,11 @@ function CallToAction() {
             placeholder="you@company.com"
             className="bg-background border-border placeholder:text-muted/70 focus-visible:border-brand-muted h-11 min-w-0 flex-1 rounded-[var(--radius)] border px-3.5 text-sm focus-visible:outline-none"
           />
-          <Button type="submit" className="shrink-0">
-            Request access
-          </Button>
+          <Magnetic>
+            <Button type="submit" className="shrink-0">
+              Request access
+            </Button>
+          </Magnetic>
         </form>
       </div>
     </section>
@@ -556,6 +622,7 @@ function Footer() {
                 <Link
                   key={l.label}
                   href={l.href}
+                  data-cursor
                   className="text-muted hover:text-brand-muted text-[13.5px]"
                 >
                   {l.label}
@@ -581,7 +648,10 @@ function Footer() {
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="relative flex min-h-full flex-col">
+      <ScrollProgress />
+      <PointerField />
+      <Spotlight />
       <LandingHeader />
       <main className="flex-1">
         <Hero />
