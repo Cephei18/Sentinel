@@ -8,7 +8,7 @@
 ## 1 — Title
 
 # Sentinel
-### The operating system for AI-native companies.
+### Give AI agents money. Let them earn more.
 
 <small>Solana · Privy · x402 · USDC</small>
 

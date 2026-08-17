@@ -9,16 +9,23 @@
 
 ## 🔴 P0 — Governance that doesn't actually govern
 
-1. **Guardrails are enforced only in the browser.**
+1. **Guardrails are enforced only in the browser — on the one live payment path.**
    `guardrail()` runs in [`agent-run-action.tsx`](../src/components/agents/agent-run-action.tsx)
    / [`agent-commerce.tsx`](../src/components/agents/agent-commerce.tsx), while
    [`/api/x402/buy`](../src/app/api/x402/buy/route.ts) spends from the server
    agent wallet **unconditionally** — anyone who POSTs to it bypasses every
    check. For a product whose thesis is "every payment is checked before value
-   moves," enforcement placement is the product. *Why it persists:* the system
-   of record is client-side localStorage, so the server has nothing to check
-   against. *Fix:* server-custodied state + authorization check at the payment
-   boundary + Privy signing-time policies as the hard backstop (Roadmap M1–M2).
+   moves," enforcement placement is the product. *Why it persists:* the demo's
+   system of record is client-side localStorage, so the server has nothing to
+   check against. *Fix:* server-custodied state + authorization check at the
+   payment boundary + Privy signing-time policies as the hard backstop
+   (Roadmap M1–M2). ⚠ **This is partially underway, not yet closed:** a
+   separate hosted `/api/v1/agents/[id]/check` endpoint
+   ([route.ts](../src/app/api/v1/agents/[id]/check/route.ts)) now re-runs
+   `checkAuthorization()` server-side against real Postgres state — but it is
+   a new, parallel surface (M2/M4 groundwork) that `/api/x402/buy` does not
+   call. The inversion this item describes still exists in the one path a
+   visitor can actually exercise today.
 
 2. **No persistence or tenancy: the "system of record" is one browser's
    localStorage.** No database, no users, no orgs, no API for agents to
@@ -26,13 +33,18 @@
    cache. The provider seam (`agents-provider.tsx`) was built for this swap —
    exercise it (Roadmap M2).
 
-3. **The event log is mutable in practice.** Events are "immutable" by
-   convention only — any client code (or the user via devtools) can rewrite
-   `sentinel.store.v1`. Trust derived from a tamperable log is not trust. *Fix:*
-   server custody, append-only writes, hash chaining (Roadmap M2); later
-   Merkle-batched integrity proofs (Roadmap M6) — Solana has no direct EAS
-   equivalent, so the anchoring mechanism is still an open research question,
-   not a settled choice (see Roadmap M6/M9).
+3. **The event log is mutable in practice — for the demo app.** Events are
+   "immutable" by convention only in `agents-provider.tsx`/localStorage: any
+   client code (or the user via devtools) can rewrite `sentinel.store.v1`.
+   Trust derived from a tamperable log is not trust. *Fix:* server custody,
+   append-only writes, hash chaining (Roadmap M2); later Merkle-batched
+   integrity proofs (Roadmap M6) — Solana has no direct EAS equivalent, so the
+   anchoring mechanism is still an open research question, not a settled
+   choice (see Roadmap M6/M9). ⚠ **Already real on the new hosted surface:**
+   `src/lib/agents/hash-chain.ts`'s `computeEventHash`/`prevHash` chain is
+   live in `/api/v1/agents/[id]/events` against Postgres (one chain per org) —
+   this item now applies specifically to the demo's client-side log, not to
+   the hosted API.
 
 ## 🟠 P1 — Correctness & security
 

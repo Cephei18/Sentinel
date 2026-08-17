@@ -21,6 +21,7 @@
     "db:push": "drizzle-kit push",
     "issue-api-key": "tsx scripts/issue-api-key.ts",
     "sdk-smoke-test": "tsx scripts/sdk-smoke-test.ts",
+    "verify-api": "tsx scripts/verify-api.ts",
     "preflight": "pnpm typecheck && pnpm lint && pnpm check-env",
     "prepare": "husky"
   },

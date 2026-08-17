@@ -4,6 +4,56 @@
 > why, consequences. Promote long-lived architectural decisions into
 > `docs/DECISIONS.md` as numbered ADRs; this file is the working notebook.
 
+## 2026-08-18 — Positioning reframe: "earned authority" over "trust & governance infrastructure"
+
+- **D-021 · Reworded the canonical one-sentence definition** in
+  `context/sentinel.md` (and its echo in `AGENTS.md`) from "the trust and
+  governance infrastructure for autonomous AI workforces" to an
+  earned-authority framing: agents start scoped and supervised, and
+  demonstrated behavior — not a default grant — is what expands autonomy and
+  capital. **Why:** a competitor scan (AlterAuth, Agentic Fabriq, Multifactor,
+  Golf.dev, OneCLI) showed scoped credentials + pre-flight policy check +
+  audit log are now near-identical table-stakes language across a *second*,
+  unrelated wave of funded companies (credential/IAM-for-agents), independent
+  of the payment-rail competitors already tracked in `memory/research-notes.md`.
+  The repo's own `docs/VISION.md` and `research-notes.md` had already reached
+  this conclusion ("budget caps... explainable scoring mechanics —
+  replicable... moat forms only from accumulated cross-employer behavioral
+  history") but it hadn't propagated into the canonical one-liner, which is
+  what `AGENTS.md`/`CLAUDE.md` and every onboarding path actually surface.
+  **Consequence:** the trust → autonomy tier → capital allocation loop is now
+  named explicitly as the reason Sentinel exists, with scoped auth/guardrails/
+  audit log explicitly demoted to "foundation, increasingly table stakes" in
+  the same sentence — not overclaimed as a moat, since the scoring mechanism
+  itself is still replicable and the real moat (accumulated cross-tenant
+  corpus) is unearned until there's real customer volume behind it.
+- **D-022 · Landing page + pitch deck copy updated to match.** Hero line
+  changed from "Give AI agents money. Keep the keys." to "Give AI agents
+  money. Let them earn more." (`src/app/page.tsx`); `docs/SLIDES.md` title
+  slide updated from "The operating system for AI-native companies" (a third,
+  unreconciled positioning variant) to the same hero line, so the deck and the
+  live product open on one sentence, not three. Added a one-line "foundation"
+  caption to the landing page's control-plane section so the enforcement
+  visual doesn't stand alone as the lead idea ahead of the trust/earned-
+  autonomy loop. **Not changed:** the guardrail-block hero visual itself, and
+  full section reordering — flagged as a larger, lower-priority follow-up, not
+  bundled into this pass.
+- **Also updated (accuracy, not positioning):** `docs/CURRENT_STATE.md` and
+  `docs/KNOWN_LIMITATIONS.md` were stale relative to code — a hosted
+  `/api/v1` API (`src/lib/db/`, `src/app/api/v1/agents/**`) already implements
+  real server-side `checkAuthorization()` calls and hash-chained events
+  (`computeEventHash`/`prevHash`) against Postgres, ahead of what those docs
+  described. Documented as a *parallel* surface: `/api/x402/buy`, the one live
+  demo payment path, still doesn't call it, so the P0 enforcement-placement
+  gap is unchanged in the one path a visitor can actually exercise.
+  `memory/research-notes.md` gained a subsection on the credential/IAM
+  competitive flank above.
+- **Deliberately not touched:** `docs/TRUST_MODEL.md` weights/thresholds, the
+  new-agent baseline (72, lands in Trusted band — a known contradiction with
+  "autonomy is earned by default," tracked since D-016), and the "Sentinel"
+  name — all depend on customer validation or a separate rename decision, not
+  on this positioning pass.
+
 ## 2026-08-12 — Base/EVM → Solana migration
 
 - **D-017 · Migrate from Base/EVM to Solana.** Not a technical failure of the

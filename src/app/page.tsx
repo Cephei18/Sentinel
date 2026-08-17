@@ -309,7 +309,7 @@ function Hero() {
             animate="show"
             className="max-w-lg text-5xl font-bold tracking-tight text-balance sm:text-6xl"
           >
-            Give AI agents money. Keep the keys.
+            Give AI agents money. Let them earn more.
           </motion.h1>
           <motion.p
             custom={2}
@@ -318,8 +318,8 @@ function Hero() {
             animate="show"
             className="text-muted mt-6 max-w-md text-lg text-balance"
           >
-            Scoped budgets, enforced before a payment moves — and a trust score that decides what
-            each worker earns next.
+            Every agent starts scoped and supervised. A deterministic trust score turns demonstrated
+            behavior into greater autonomy and a bigger budget — never the other way around.
           </motion.p>
           <motion.div
             custom={3}
@@ -379,6 +379,9 @@ function ControlPlane() {
       <h2 className="max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
         A control plane, not a key.
       </h2>
+      <p className="text-muted mt-4 max-w-2xl">
+        The foundation every payment passes through before trust decides what&apos;s next.
+      </p>
       <div className="mt-10 grid gap-5 sm:grid-cols-3">
         {TILES.map((tile, i) => (
           <motion.div

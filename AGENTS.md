@@ -6,10 +6,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Project: Sentinel
 
-Trust & governance infrastructure for autonomous AI workforces. Source of
-truth: `context/sentinel.md`. Onboard via `docs/SYSTEM_OVERVIEW.md` →
-`docs/CURRENT_STATE.md` → `docs/KNOWN_LIMITATIONS.md`; standards in
-`docs/ENGINEERING_STANDARDS.md`.
+Sentinel lets organizations give autonomous AI agents real financial
+authority that grows only as fast as the agent proves it deserves it. Scoped
+authorization + guardrails + an audit log are the foundation (increasingly
+table stakes market-wide); the trust → earned autonomy → capital allocation
+loop is the reason the company exists. Source of truth: `context/sentinel.md`.
+Onboard via `docs/SYSTEM_OVERVIEW.md` → `docs/CURRENT_STATE.md` →
+`docs/KNOWN_LIMITATIONS.md`; standards in `docs/ENGINEERING_STANDARDS.md`.
 
 ## Rules for working in this repo
 

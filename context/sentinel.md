@@ -8,7 +8,15 @@
 
 ## One sentence
 
-**Sentinel is the trust and governance infrastructure for autonomous AI workforces.**
+**Sentinel lets organizations give autonomous AI agents real financial authority that grows only as fast as the agent proves it deserves it.**
+
+Scoped authorization, pre-flight guardrails, and an append-only event log are
+the foundation this rests on — necessary, and rapidly becoming table stakes
+across the agent-governance market. The reason Sentinel exists is what sits on
+top of that foundation: a deterministic, explainable trust score that turns
+demonstrated behavior into earned autonomy and earned capital, never granted
+upfront. See `docs/VISION.md` for the full positioning rationale and
+`memory/decision-log.md` (2026-08-18 entry) for how this wording was chosen.
 
 ## The problem
 

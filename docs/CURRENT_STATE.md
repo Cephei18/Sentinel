@@ -30,6 +30,16 @@ guardrails, one live x402 payment path that pays the app itself.
 | USDC transfer via user wallet | ✅ real with Privy (Solana) | `use-usdc-transfer`, `usdc-payment` |
 | On-chain payment verification | ✅ real | `/api/verify-payment` |
 | Wallet-free demo mode | ✅ first-class | `providers.tsx` + `demo-mode.tsx` |
+| Hosted `/api/v1` API: org-scoped auth, Postgres, real server-side hash-chained events | ✅ real, but a **separate, parallel surface** — nothing in the demo app calls it yet | `src/lib/db/schema.ts` + `src/lib/db/client.ts`, `src/app/api/v1/agents/**` (`check`, `[id]/events`) |
+
+> ⚠ The hosted `/api/v1` surface is genuine M2/M4 progress — `check` re-runs
+> `checkAuthorization()` server-side against Postgres-backed state, and
+> `.../events` writes real `computeEventHash`/`prevHash` chains, not the
+> convention-only log described below. But it is additive, not a fix: the
+> one live payment path in the product (`/api/x402/buy`) still spends
+> unconditionally and does not call `check` or record through this API. Both
+> the honest gap (below) and this new surface are simultaneously true —
+> don't let one obscure the other.
 
 ## System shape (v1)
 
@@ -39,9 +49,14 @@ guardrails, one live x402 payment path that pays the app itself.
   seed, format. Pure TS, no framework imports, now unit-tested.
 - **Chain plumbing:** `src/lib/` — solana/constants/env/connection/usdc/tx/x402.
   One switch (`NEXT_PUBLIC_SOLANA_CLUSTER`) flips devnet ↔ mainnet-beta.
-- **Server surface:** 5 routes (`agent`, `premium`, `x402/buy`,
+- **Server surface:** the original 5 demo routes (`agent`, `premium`, `x402/buy`,
   `verify-payment`, `health`); the x402 gate lives directly in the `premium`
-  route handler (x402-solana has no Next.js middleware helper). No database.
+  route handler (x402-solana has no Next.js middleware helper). No database
+  behind the demo. **Separately**, a hosted `/api/v1` surface now exists
+  (`agents`, `[id]`, `[id]/check`, `[id]/events`) backed by Postgres via
+  Drizzle (`src/lib/db/`) — org-scoped API keys, real hash-chained events.
+  This is the M2/M4 seam described in `ROADMAP.md`, already under
+  construction; it does not yet replace the demo's client-side store.
 - **UI:** landing, `/dashboard` (ops), `/graph` (org), `/agents/[id]` (profile);
   ~18 agent components + wallet/payment/chat components + small ui-kit.
 

@@ -136,6 +136,42 @@ survey, AWS CloudFront x402 date.
   partner as much as competitor. **Nevermined** (~$7M) — seller-side metering
   (mirror image; Privy partner).
 
+### Second competitive flank: generic agent-credential/IAM vendors (found 2026-08-18)
+Distinct from the payment-rail competitors above — these don't touch money
+movement at all, but converge on nearly identical *foundation-layer* language,
+confirming that scoped-credential + policy-check + audit-log mechanics are
+commoditizing from two directions at once, not one:
+- **AlterAuth** — scoped OAuth/credential vault for apps + AI agents; "every
+  credential-use request passes policy checks and emits a terminal audit
+  event." No payments, no trust scoring, no autonomy tiers.
+- **Agentic Fabriq** (YC, MIT-founded) — "the secure hub for agent identity,
+  governance, and visibility"; frames itself as the IAM evolution
+  (SSO → cloud IAM → OAuth → agent identity). Fine-grained authz + centralized
+  secret vault + real-time audit. No financial-authority or trust-score
+  concept.
+- **Multifactor** — password-manager evolution; "share online accounts with
+  humans and AI agents, just by sending a link"; fine-grained permission
+  sharing, event history, cryptographic non-repudiation. Consumer + enterprise
+  account access, not agent spend governance.
+- **Golf.dev** — enterprise MCP control plane; discovers "shadow" agent/MCP
+  connections, enforces per-tool policy at the MCP layer, compliance-mapped
+  audit trail (SOC2/ISO27001/NIST AI RMF/FINRA). Governs third-party agents
+  (Claude, Copilot) "you didn't build" — tool/data access, not money.
+- **OneCLI** (YC) — "the open-source trust layer for AI agents"; network-layer
+  policy enforcement for coding agents (Claude Code, Codex, Cursor), scoped
+  credential injection, "agents never hold a real secret." Coding-agent/CLI
+  scope, not payments.
+
+None of the five productize: trust scoring, autonomy tiers, capital
+allocation, or payment-native governance. This reinforces the existing
+"Differentiation (honest)" conclusion below rather than changing it — it's
+independent evidence from a second, unrelated wave of funded companies that
+the *foundation* (scoped creds, pre-flight policy check, audit log) is now
+table stakes, arrived at from the credential/IAM side rather than the
+payment-rail side. See `docs/VISION.md`'s "Not a moat" list and
+`memory/decision-log.md` (2026-08-18) for how this fed into the positioning
+rewrite.
+
 ### Enterprise IAM lens
 - **Microsoft Entra Agent ID (GA 2026-04) + Agent 365 (GA 2026-05, $15/user/mo)**
   — owns enterprise agent identity/registry; no financial authority or payment
