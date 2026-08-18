@@ -3,15 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrustGraph } from "@/components/agents/trust-graph";
-import { TrustScoreRing } from "@/components/agents/trust-score-ring";
 import { PointerField, Spotlight } from "@/components/landing/pointer-field";
 import { ScrollProgress } from "@/components/landing/scroll-progress";
 import { TiltCard } from "@/components/landing/tilt-card";
 import { Magnetic } from "@/components/landing/magnetic";
+import { LiveGuardrail } from "@/components/landing/live-guardrail";
+import { LiveTrust } from "@/components/landing/live-trust";
+import { CodeBlock } from "@/components/landing/code-block";
+import { fade } from "@/components/landing/motion-presets";
 import { BRAND } from "@/lib/brand";
 
 const CONTACT_EMAIL = "gopikachauhan1819@gmail.com";
@@ -29,13 +32,6 @@ const LEGEND = [
   { className: "bg-brand-muted", label: "Trusted" },
   { className: "bg-warning", label: "Supervised" },
   { className: "bg-danger", label: "At risk" },
-];
-
-const TICKER = [
-  { kind: "payment", text: "Atlas · premium market data · $0.01 · Trust +3" },
-  { kind: "blocked", text: "Probe · spend outside allowed category · Trust −4" },
-  { kind: "payment", text: "Atlas → Nova · data enrichment · $1.20 · Trust +3" },
-  { kind: "budget", text: "Atlas · allocation raised $100 → $150" },
 ];
 
 const TILES = [
@@ -91,21 +87,16 @@ const TILES = [
       </div>
     ),
   },
-];
-
-const TRUST_FEED = [
-  { label: "payment · $0.25", delta: "+2" },
-  { label: "task completed", delta: null },
-  { label: "payment · $1.20", delta: "+3" },
-  { label: "blocked", delta: "−4" },
-  { label: "failed · $1.50", delta: "−5" },
-];
-
-const TRUST_FACTORS = [
-  { pct: "40%", label: "Payment reliability" },
-  { pct: "25%", label: "Spending discipline" },
-  { pct: "20%", label: "Task completion" },
-  { pct: "15%", label: "Consistency" },
+  {
+    kicker: "Audit",
+    title: "Hash-chained, not just logged",
+    body: (
+      <div className="mt-auto">
+        <p className="text-[64px] leading-none font-semibold">0</p>
+        <p className="text-muted mt-2 text-sm">edits possible without breaking the chain</p>
+      </div>
+    ),
+  },
 ];
 
 const STEPS = [
@@ -114,6 +105,37 @@ const STEPS = [
   { title: "Settle", body: "An x402 payment lands." },
   { title: "Delegate", body: "A worker hires a worker." },
   { title: "Allocate", body: "Back the reliable one." },
+];
+
+const SDK_SNIPPET = `import { Sentinel } from "@sentinel-hq/sdk";
+
+const sentinel = new Sentinel({ apiKey: process.env.SENTINEL_API_KEY! });
+
+const verdict = await sentinel.check(agentId, {
+  amountUsdc: 0.5,
+  category: "data",
+});
+
+if (verdict.allowed) {
+  // You execute the real payment through your own wallet/x402 code.
+  const txHash = await payViaYourOwnRail();
+
+  await sentinel.recordEvent(agentId, {
+    kind: "payment_success",
+    label: "Paid for a data API call",
+    amountUsdc: 0.5,
+    category: "data",
+    txHash,
+  });
+} else {
+  console.log("Blocked:", verdict.reason);
+}`;
+
+const SDK_METHODS = [
+  { call: "sentinel.agents.create()", detail: "Grant an agent a scoped budget" },
+  { call: "sentinel.check()", detail: "The guardrail — read-only" },
+  { call: "sentinel.recordEvent()", detail: "Append a settlement, failure, task, or block" },
+  { call: "sentinel.agents.trust()", detail: "The current explainable score" },
 ];
 
 const FOOTER_COLUMNS = [
@@ -125,10 +147,16 @@ const FOOTER_COLUMNS = [
     ],
   },
   {
+    heading: "Developers",
+    links: [
+      { label: "Docs", href: "/docs" },
+      { label: "SDK reference", href: "/docs#api" },
+    ],
+  },
+  {
     heading: "Engine",
     links: [
       { label: "Trust model", href: "#trust-engine" },
-      { label: "Governance", href: "#trust-engine" },
       { label: "How it works", href: "#how-it-works" },
     ],
   },
@@ -137,15 +165,6 @@ const FOOTER_COLUMNS = [
     links: [{ label: "Contact", href: "#contact" }],
   },
 ];
-
-const fade = {
-  hidden: { opacity: 0, y: 14 },
-  show: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
-  }),
-};
 
 function LandingHeader() {
   return (
@@ -176,12 +195,19 @@ function LandingHeader() {
             Trust engine
           </a>
           <a
-            href="#how-it-works"
+            href="#sdk"
+            data-cursor
+            className="text-muted hover:bg-foreground/8 hover:text-foreground hidden rounded-full px-3.5 py-2 text-sm transition-colors sm:block"
+          >
+            SDK
+          </a>
+          <Link
+            href="/docs"
             data-cursor
             className="text-muted hover:bg-foreground/8 hover:text-foreground hidden rounded-full px-3.5 py-2 text-sm transition-colors sm:block"
           >
             Docs
-          </a>
+          </Link>
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <Link
@@ -189,7 +215,7 @@ function LandingHeader() {
             data-cursor
             className="text-brand-muted hidden text-sm font-medium sm:block"
           >
-            Open the demo
+            Org graph
           </Link>
           <Magnetic>
             <a href={mailtoHref()}>
@@ -199,71 +225,6 @@ function LandingHeader() {
         </div>
       </div>
     </header>
-  );
-}
-
-function GuardrailWidget() {
-  const steps = ["Status active", "Not expired", "Category data authorized"];
-  return (
-    <motion.div custom={4} variants={fade} initial="hidden" animate="show" className="relative">
-      <div className="bg-brand/[0.16] absolute -top-8 -left-8 size-32 rounded-full" />
-      <div className="border-border/70 absolute -right-9 -bottom-8 size-24 rounded-full border" />
-      <TiltCard className="bg-surface relative overflow-hidden rounded-lg p-6 shadow-2xl">
-        <div className="relative flex items-center justify-between gap-2">
-          <span className="text-muted text-[11px] tracking-wider uppercase">
-            Authorization check
-          </span>
-          <span className="text-muted flex items-center gap-1.5 text-[11.5px]">
-            <span
-              className="bg-brand-muted size-1.5 rounded-full"
-              style={{ animation: "blink 1.6s ease-in-out infinite" }}
-            />
-            live
-          </span>
-        </div>
-        <p className="relative mt-4.5 text-[17px] font-bold">Probe wants to pay $8.00</p>
-        <p className="text-muted relative mt-0.5 text-[12.5px]">
-          category: data · per-transaction cap $2
-        </p>
-        <div className="relative mt-5 flex flex-col gap-1.5">
-          {steps.map((s, i) => (
-            <motion.div
-              key={s}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.15, duration: 0.4 }}
-              className="bg-background flex items-center gap-2.5 rounded-[10px] px-3.5 py-2 text-[13.5px]"
-            >
-              <Check className="text-success size-3.5 shrink-0" strokeWidth={2.75} />
-              <span className="flex-1">{s}</span>
-            </motion.div>
-          ))}
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.75, duration: 0.4 }}
-            className="bg-danger/20 flex items-center gap-2.5 rounded-[10px] px-3.5 py-2 text-[13.5px]"
-          >
-            <X className="text-danger size-3.5 shrink-0" strokeWidth={2.75} />
-            <span className="text-danger flex-1">$8 exceeds the $2 limit</span>
-          </motion.div>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 1.2 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.05, duration: 0.4 }}
-          className="bg-danger/25 relative mt-4 flex items-center justify-between gap-3 rounded-xl px-4.5 py-3"
-        >
-          <div>
-            <p className="text-danger text-[18px] font-semibold">Blocked by guardrail</p>
-            <p className="text-danger/80 mt-0.5 text-xs">No value left the wallet.</p>
-          </div>
-          <span className="bg-danger/30 text-danger rounded-full px-2.5 py-1 text-[13px] font-bold">
-            Trust −4
-          </span>
-        </motion.div>
-      </TiltCard>
-    </motion.div>
   );
 }
 
@@ -299,7 +260,7 @@ function Hero() {
         <div>
           <motion.div custom={0} variants={fade} initial="hidden" animate="show">
             <Badge variant="brand" className="mb-6">
-              Startup in the making
+              npm install @sentinel-hq/sdk
             </Badge>
           </motion.div>
           <motion.h1
@@ -319,7 +280,8 @@ function Hero() {
             className="text-muted mt-6 max-w-md text-lg text-balance"
           >
             Every agent starts scoped and supervised. A deterministic trust score turns demonstrated
-            behavior into greater autonomy and a bigger budget — never the other way around.
+            behavior into greater autonomy and a bigger budget — callable straight from your own
+            agent code, never the other way around.
           </motion.p>
           <motion.div
             custom={3}
@@ -336,40 +298,17 @@ function Hero() {
               </a>
             </Magnetic>
             <Magnetic>
-              <Link href="/graph">
+              <Link href="/dashboard">
                 <Button size="lg" variant="secondary">
-                  Explore the demo
+                  Open the dashboard
                 </Button>
               </Link>
             </Magnetic>
           </motion.div>
         </div>
-        <GuardrailWidget />
+        <LiveGuardrail />
       </div>
     </section>
-  );
-}
-
-function Ticker() {
-  const row = (key: string) => (
-    <div key={key} className="flex gap-11 pr-11 text-[12.5px] whitespace-nowrap">
-      {TICKER.map((t, i) => (
-        <span key={i} className="text-muted">
-          <strong className={t.kind === "blocked" ? "text-danger" : "text-brand-muted"}>
-            {t.kind}
-          </strong>{" "}
-          {t.text}
-        </span>
-      ))}
-    </div>
-  );
-  return (
-    <div className="border-border/60 bg-surface overflow-hidden border-y py-3.5">
-      <div className="flex w-max" style={{ animation: "marquee 38s linear infinite" }}>
-        {row("a")}
-        {row("b")}
-      </div>
-    </div>
   );
 }
 
@@ -382,7 +321,7 @@ function ControlPlane() {
       <p className="text-muted mt-4 max-w-2xl">
         The foundation every payment passes through before trust decides what&apos;s next.
       </p>
-      <div className="mt-10 grid gap-5 sm:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {TILES.map((tile, i) => (
           <motion.div
             key={tile.title}
@@ -417,55 +356,48 @@ function TrustEngine() {
         </h2>
         <p className="text-muted mt-4 max-w-2xl">
           Recomputed from an append-only event log on every read, so the same history always returns
-          the same number.
+          the same number. This is Atlas&apos;s real record — scroll, and watch the score build from
+          it.
         </p>
+        <LiveTrust />
+      </div>
+    </section>
+  );
+}
 
-        <div className="mt-12 grid items-center gap-10 lg:grid-cols-[268px_40px_1fr]">
-          <div className="flex flex-col gap-2">
-            {TRUST_FEED.map((f, i) => (
-              <motion.div
-                key={f.label}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05, duration: 0.4 }}
-                className="bg-background flex items-center gap-2.5 rounded-[10px] px-4 py-2.5 text-[13px]"
-              >
-                <span
-                  className={`size-2 shrink-0 rounded-full ${
-                    f.delta === null
-                      ? "bg-brand"
-                      : f.delta.startsWith("+")
-                        ? "bg-brand-muted"
-                        : "bg-danger"
-                  }`}
-                />
-                <span className="flex-1">{f.label}</span>
-                {f.delta && (
-                  <span
-                    className={`text-xs font-bold ${
-                      f.delta.startsWith("+") ? "text-brand-muted" : "text-danger"
-                    }`}
-                  >
-                    {f.delta}
-                  </span>
-                )}
-              </motion.div>
-            ))}
-          </div>
-
-          <ArrowRight className="text-muted/40 mx-auto hidden size-6 lg:block" />
-
-          <div className="flex flex-wrap items-center gap-10">
-            <TrustScoreRing score={96} grade="AAA" size={200} />
-            <div className="flex flex-col gap-4">
-              {TRUST_FACTORS.map((f) => (
-                <div key={f.label} className="flex items-center gap-3">
-                  <span className="w-14 text-xl font-semibold">{f.pct}</span>
-                  <span className="text-[15px]">{f.label}</span>
+function SdkSection() {
+  return (
+    <section id="sdk" className="border-border/60 border-t px-4 py-20 sm:py-24">
+      <div className="mx-auto max-w-6xl">
+        <span className="text-brand-muted font-mono text-[10px] tracking-[0.12em] uppercase">
+          Developer surface
+        </span>
+        <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
+          Check first. Record what happened.
+        </h2>
+        <p className="text-muted mt-4 max-w-2xl">
+          A thin TypeScript client over the hosted API. Sentinel never holds your agent&apos;s keys
+          or executes a payment for you — it just answers one question before you spend, and keeps
+          the record after.
+        </p>
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <CodeBlock code={SDK_SNIPPET} label="agent.ts" />
+          <div className="flex flex-col gap-5">
+            <div className="border-border bg-surface flex flex-col gap-3 rounded-lg border p-5">
+              {SDK_METHODS.map((m) => (
+                <div key={m.call} className="flex flex-col gap-0.5">
+                  <span className="font-mono text-[13px] font-semibold">{m.call}</span>
+                  <span className="text-muted text-[12.5px]">{m.detail}</span>
                 </div>
               ))}
             </div>
+            <Magnetic>
+              <Link href="/docs">
+                <Button variant="secondary" className="w-full">
+                  Read the docs <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+            </Magnetic>
           </div>
         </div>
       </div>
@@ -480,7 +412,7 @@ function HowItWorks() {
         Five moves, ninety seconds.
       </h2>
       <div className="relative mt-12">
-        <div className="border-border/60 absolute top-6.5 right-6.5 left-6.5 h-px border-t" />
+        <div className="border-border/60 absolute top-6.5 right-6.5 left-6.5 hidden h-px border-t sm:block" />
         <div className="relative grid grid-cols-2 gap-6 sm:grid-cols-5">
           {STEPS.map((s, i) => (
             <motion.div
@@ -552,7 +484,7 @@ function CompanyInMotion() {
           </div>
         </div>
 
-        <div className="border-border bg-background mt-12 rounded-lg border p-6 shadow-2xl">
+        <div className="border-border bg-background mt-12 overflow-x-auto rounded-lg border p-6 shadow-2xl">
           <TrustGraph />
           <div className="border-border/60 mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 border-t pt-4">
             {LEGEND.map((l) => (
@@ -582,7 +514,7 @@ function CallToAction() {
           Try it with your own agents.
         </h2>
         <form
-          className="relative flex min-w-0 gap-2.5 sm:min-w-[380px]"
+          className="relative flex min-w-0 flex-col gap-2.5 sm:min-w-[380px] sm:flex-row"
           onSubmit={(e) => {
             e.preventDefault();
             window.location.href = mailtoHref(email || undefined);
@@ -611,7 +543,7 @@ function Footer() {
   return (
     <footer className="border-border/60 border-t px-4 py-12">
       <div className="mx-auto max-w-6xl">
-        <div className="border-border/60 grid gap-10 border-b pb-8 sm:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div className="border-border/60 grid gap-10 border-b pb-8 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
           <span className="flex items-center gap-2.5 text-lg font-semibold">
             <span className="bg-brand text-brand-foreground grid size-7 place-items-center rounded-full text-sm">
               {BRAND.glyph}
@@ -635,7 +567,9 @@ function Footer() {
           ))}
         </div>
         <div className="text-muted flex flex-wrap items-center justify-between gap-3 pt-5 text-[12.5px]">
-          <span>© 2026 {BRAND.name}. Startup in the making.</span>
+          <span>
+            © 2026 {BRAND.name}. {BRAND.tagline}
+          </span>
           <span className="flex items-center gap-2">
             <span
               className="bg-brand-muted size-1.5 rounded-full"
@@ -658,9 +592,9 @@ export default function Home() {
       <LandingHeader />
       <main className="flex-1">
         <Hero />
-        <Ticker />
         <ControlPlane />
         <TrustEngine />
+        <SdkSection />
         <HowItWorks />
         <CompanyInMotion />
         <CallToAction />
