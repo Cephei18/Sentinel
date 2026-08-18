@@ -22,6 +22,7 @@
     "issue-api-key": "tsx scripts/issue-api-key.ts",
     "sdk-smoke-test": "tsx scripts/sdk-smoke-test.ts",
     "verify-api": "tsx scripts/verify-api.ts",
+    "verify-x402-gate": "tsx scripts/verify-x402-gate.ts",
     "preflight": "pnpm typecheck && pnpm lint && pnpm check-env",
     "prepare": "husky"
   },

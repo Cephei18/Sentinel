@@ -41,7 +41,15 @@ export async function GET(req: Request) {
 
   if (!paymentHeader) {
     const response = x402.create402Response(paymentRequirements, resourceUrl);
-    return NextResponse.json(response.body, { status: response.status });
+    const res = NextResponse.json(response.body, { status: response.status });
+    // Signals protocol v2 to the client (x402-solana/client looks for this
+    // header first); without it, clients fall back to v1's X-PAYMENT header,
+    // which this server's extractPayment() never checks — a silent deadlock.
+    res.headers.set(
+      "PAYMENT-REQUIRED",
+      Buffer.from(JSON.stringify(response.body)).toString("base64"),
+    );
+    return res;
   }
 
   const verified = await x402.verifyPayment(paymentHeader, paymentRequirements);
