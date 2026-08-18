@@ -150,7 +150,7 @@ const FOOTER_COLUMNS = [
     heading: "Developers",
     links: [
       { label: "Docs", href: "/docs" },
-      { label: "SDK reference", href: "/docs#api" },
+      { label: "SDK reference", href: "/docs/agents" },
     ],
   },
   {

@@ -23,6 +23,9 @@ export function Navbar() {
           <Link href="/graph" className="text-muted hover:text-foreground hidden text-sm sm:block">
             Org graph
           </Link>
+          <Link href="/docs" className="text-muted hover:text-foreground hidden text-sm sm:block">
+            Docs
+          </Link>
           <ConnectButton />
         </nav>
       </div>
